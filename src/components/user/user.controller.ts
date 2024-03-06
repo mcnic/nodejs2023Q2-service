@@ -1,37 +1,65 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
-  HttpException,
-  HttpStatus,
+  HttpCode,
   Param,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from 'src/app.types';
-import { validate as uuidValidate } from 'uuid';
+import {
+  CreateUserDto,
+  ShowingUser,
+  UpdatePasswordDto,
+} from '../user.interface';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly appService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get()
-  getAllUsers(): Promise<User[]> {
-    return this.appService.getAllUsers();
+  async getAllUsers(): Promise<ShowingUser[]> {
+    const users = await this.userService.getAllUsers();
+
+    return users.map((user) => this.userService.getShowngUser(user));
   }
 
   @Get(':id')
-  async getUser(@Param('id') id: string): Promise<User | undefined> {
-    console.log('request', id);
+  async getUser(@Param('id') id: string): Promise<ShowingUser | undefined> {
+    const user = await this.userService.getUserById(id);
 
-    if (!uuidValidate(id))
-      throw new HttpException(
-        'userId is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
+    return this.userService.getShowngUser(user);
+  }
 
-    const user = await this.appService.getUserById(id);
+  @Post()
+  @HttpCode(201)
+  async addUser(@Body() dto: CreateUserDto) {
+    const { login, password } = dto;
 
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    const user = await this.userService.addUser(login, password);
 
-    return user;
+    return this.userService.getShowngUser(user);
+  }
+
+  @Put(':id')
+  async updateUser(
+    @Param('id') id: string,
+    @Body() dto: UpdatePasswordDto,
+  ): Promise<ShowingUser> {
+    const { oldPassword, newPassword } = dto;
+
+    await this.userService.changeUserPasswordById(id, oldPassword, newPassword);
+
+    const user = await this.userService.getUserById(id);
+
+    return this.userService.getShowngUser(user);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(@Param('id') id: string) {
+    await this.userService.removeUserdById(id);
   }
 }
