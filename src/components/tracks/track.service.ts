@@ -29,7 +29,7 @@ export class TrackService {
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
   }
 
-  async getAllTracks(): Promise<Track[]> {
+  async getAll(): Promise<Track[]> {
     return this.tracks;
   }
 
@@ -37,7 +37,7 @@ export class TrackService {
     return !!this.tracks.find(({ id }) => id === trackId);
   }
 
-  async getTrackById(trackId: string): Promise<Track | undefined> {
+  async getById(trackId: string): Promise<Track | undefined> {
     this.assertTrackId(trackId);
 
     const track = this.tracks.find(({ id }) => id === trackId);
@@ -72,7 +72,7 @@ export class TrackService {
     return newTrack;
   }
 
-  async changeTrackById(id: string, dto: Track): Promise<Track> {
+  async changeById(id: string, dto: Track): Promise<Track> {
     const { name, duration } = dto;
 
     this.assertTrackId(id);
@@ -86,7 +86,7 @@ export class TrackService {
     )
       throw new HttpException('Invalid Track data', HttpStatus.BAD_REQUEST);
 
-    let track = this.getTrackById(id);
+    let track = this.getById(id);
     track = {
       id,
       ...track,
@@ -96,7 +96,7 @@ export class TrackService {
     return track;
   }
 
-  async removeTrackdById(trackId: string) {
+  async removeById(trackId: string) {
     this.assertTrackId(trackId);
     await this.assertTrackExistById(trackId);
 

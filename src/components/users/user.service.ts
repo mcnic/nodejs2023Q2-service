@@ -36,7 +36,7 @@ export class UserService {
     return { id, login, version, createdAt, updatedAt };
   }
 
-  async getAllUsers(): Promise<User[]> {
+  async getAll(): Promise<User[]> {
     return this.users;
   }
 
@@ -48,12 +48,12 @@ export class UserService {
     userId: string,
     userPassword: string,
   ): Promise<boolean> {
-    const user = await this.getUserById(userId);
+    const user = await this.getById(userId);
 
     return user.password === userPassword;
   }
 
-  async getUserById(userId: string): Promise<User | undefined> {
+  async getById(userId: string): Promise<User | undefined> {
     this.assertUserId(userId);
 
     const user = this.users.find(({ id }) => id === userId);
@@ -113,14 +113,14 @@ export class UserService {
     if (!(await this.isUserPasswordCorrect(id, oldPassword)))
       throw new HttpException('OldPassword is wrong', HttpStatus.FORBIDDEN);
 
-    const user = await this.getUserById(id);
+    const user = await this.getById(id);
 
     user.password = newPassword;
     user.updatedAt = getTimestamp();
     user.version = user.version + 1;
   }
 
-  async removeUserdById(userId: string) {
+  async removedById(userId: string) {
     this.assertUserId(userId);
     await this.assertUserExistById(userId);
 

@@ -20,15 +20,15 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getAllUsers(): Promise<ShowingUser[]> {
-    const users = await this.userService.getAllUsers();
+  async getAll(): Promise<ShowingUser[]> {
+    const users = await this.userService.getAll();
 
     return users.map((user) => this.userService.getShowngUser(user));
   }
 
   @Get(':id')
-  async getUser(@Param('id') id: string): Promise<ShowingUser | undefined> {
-    const user = await this.userService.getUserById(id);
+  async getById(@Param('id') id: string): Promise<ShowingUser | undefined> {
+    const user = await this.userService.getById(id);
 
     return this.userService.getShowngUser(user);
   }
@@ -44,7 +44,7 @@ export class UserController {
   }
 
   @Put(':id')
-  async updateUser(
+  async updateById(
     @Param('id') id: string,
     @Body() dto: UpdatePasswordDto,
   ): Promise<ShowingUser> {
@@ -52,14 +52,14 @@ export class UserController {
 
     await this.userService.changeUserPasswordById(id, oldPassword, newPassword);
 
-    const user = await this.userService.getUserById(id);
+    const user = await this.userService.getById(id);
 
     return this.userService.getShowngUser(user);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id') id: string) {
-    await this.userService.removeUserdById(id);
+  async removeById(@Param('id') id: string) {
+    await this.userService.removedById(id);
   }
 }

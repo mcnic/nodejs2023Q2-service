@@ -16,32 +16,32 @@ export class TrackController {
   constructor(private readonly trackService: TrackService) {}
 
   @Get()
-  async getAllTracks(): Promise<Track[]> {
-    return await this.trackService.getAllTracks();
+  async getAll(): Promise<Track[]> {
+    return await this.trackService.getAll();
   }
 
   @Get(':id')
-  async getUser(@Param('id') id: string): Promise<Track | undefined> {
-    return await this.trackService.getTrackById(id);
+  async getById(@Param('id') id: string): Promise<Track | undefined> {
+    return await this.trackService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  async addTrack(@Body() dto: Track) {
+  async add(@Body() dto: Track) {
     return await this.trackService.addTrack(dto);
   }
 
   @Put(':id')
-  async updateUser(
+  async updateById(
     @Param('id') id: string,
     @Body() dto: Track,
   ): Promise<Track> {
-    return await this.trackService.changeTrackById(id, dto);
+    return await this.trackService.changeById(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id') id: string) {
-    await this.trackService.removeTrackdById(id);
+  async removeById(@Param('id') id: string) {
+    await this.trackService.removeById(id);
   }
 }
