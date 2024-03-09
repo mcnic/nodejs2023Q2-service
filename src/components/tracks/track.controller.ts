@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -26,9 +27,9 @@ export class TrackController {
   }
 
   @Post()
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   async add(@Body() dto: Track) {
-    return await this.trackService.addTrack(dto);
+    return await this.trackService.add(dto);
   }
 
   @Put(':id')
@@ -40,7 +41,7 @@ export class TrackController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeById(@Param('id') id: string) {
     await this.trackService.removeById(id);
   }

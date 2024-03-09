@@ -1,20 +1,14 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Track } from './track.interface';
 import { isValidUUID, newUUID } from 'src/helpers/uuid';
+import { MEMORY_STORE } from 'src/db/memoryStore';
+import { MemoryStore } from 'src/db/memoryStore';
 
 @Injectable()
 export class TrackService {
-  tracks: Track[] = [
-    {
-      id: '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b',
-      name: 'track1',
-      artistId: 'artist1',
-      albumId: 'albom1',
-      duration: 1,
-    },
-  ];
+  constructor(@Inject(MEMORY_STORE) private readonly store: MemoryStore) {}
 
-  assertTrackId(id: string) {
+  assertId(id: string) {
     if (!isValidUUID(id))
       throw new HttpException(
         'id is invalid (not uuid)',
@@ -22,25 +16,28 @@ export class TrackService {
       );
   }
 
-  async assertTrackExistById(id: string) {
-    const Track = await this.isTrackExist(id);
+  async assertExistById(
+    trackId: string,
+    status: HttpStatus = HttpStatus.NOT_FOUND,
+  ) {
+    const store = await this.store.getStore();
+    const track = store.tracks.find(({ id }) => id === trackId);
 
-    if (!Track)
-      throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+    if (!track) throw new HttpException('Track not found', status);
   }
 
   async getAll(): Promise<Track[]> {
-    return this.tracks;
-  }
+    const store = await this.store.getStore();
 
-  async isTrackExist(trackId: string): Promise<boolean> {
-    return !!this.tracks.find(({ id }) => id === trackId);
+    return store.tracks;
   }
 
   async getById(trackId: string): Promise<Track | undefined> {
-    this.assertTrackId(trackId);
+    this.assertId(trackId);
 
-    const track = this.tracks.find(({ id }) => id === trackId);
+    const store = await this.store.getStore();
+
+    const track = store.tracks.find(({ id }) => id === trackId);
 
     if (!track)
       throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
@@ -48,7 +45,7 @@ export class TrackService {
     return track;
   }
 
-  async addTrack(dto: Track): Promise<Track> {
+  async add(dto: Track): Promise<Track> {
     const { name, duration, artistId, albumId } = dto;
 
     if (
@@ -59,6 +56,8 @@ export class TrackService {
     )
       throw new HttpException('Invalid Track data', HttpStatus.BAD_REQUEST);
 
+    const store = await this.store.getStore();
+    const tracks = store.tracks;
     const newTrack: Track = {
       id: newUUID(),
       name,
@@ -66,8 +65,8 @@ export class TrackService {
       albumId,
       duration,
     };
-
-    this.tracks.push(newTrack);
+    tracks.push(newTrack);
+    await this.store.setStore({ ...store, tracks });
 
     return newTrack;
   }
@@ -75,8 +74,8 @@ export class TrackService {
   async changeById(id: string, dto: Track): Promise<Track> {
     const { name, duration } = dto;
 
-    this.assertTrackId(id);
-    await this.assertTrackExistById(id);
+    this.assertId(id);
+    await this.assertExistById(id);
 
     if (
       !name ||
@@ -86,20 +85,30 @@ export class TrackService {
     )
       throw new HttpException('Invalid Track data', HttpStatus.BAD_REQUEST);
 
-    let track = this.getById(id);
-    track = {
-      id,
-      ...track,
-      ...dto,
-    };
+    let changedTrack: Track;
 
-    return track;
+    const store = await this.store.getStore();
+    const tracks = store.tracks.map((track) => {
+      if (track.id === id) {
+        changedTrack = {
+          ...track,
+          ...dto,
+        };
+        return changedTrack;
+      }
+      return track;
+    });
+    await this.store.setStore({ ...store, tracks });
+
+    return changedTrack;
   }
 
   async removeById(trackId: string) {
-    this.assertTrackId(trackId);
-    await this.assertTrackExistById(trackId);
+    this.assertId(trackId);
+    await this.assertExistById(trackId);
 
-    this.tracks = this.tracks.filter(({ id }) => id !== trackId);
+    const store = await this.store.getStore();
+    const tracks = store.tracks.filter(({ id }) => id !== trackId);
+    await this.store.setStore({ ...store, tracks });
   }
 }
