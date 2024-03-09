@@ -111,4 +111,22 @@ export class TrackService {
     const tracks = store.tracks.filter(({ id }) => id !== trackId);
     await this.store.setStore({ ...store, tracks });
   }
+
+  async removeAlbumFromAllTracks(id: string) {
+    const store = await this.store.getStore();
+    const tracks = store.tracks.map((track) => {
+      if (track.albumId === id) track.albumId = null;
+      return track;
+    });
+    await this.store.setStore({ ...store, tracks });
+  }
+
+  async removeArtistFromAllTracks(id: string) {
+    const store = await this.store.getStore();
+    const tracks = store.tracks.map((track) => {
+      if (track.artistId === id) track.artistId = null;
+      return track;
+    });
+    await this.store.setStore({ ...store, tracks });
+  }
 }
