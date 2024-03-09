@@ -1,22 +1,15 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ShowingUser, User } from '../user.interface';
 import { isValidUUID, newUUID } from 'src/helpers/uuid';
 import { getTimestamp } from 'src/helpers/time';
+import { MEMORY_STORE } from 'src/db/memoryStore';
+import { MemoryStore } from 'src/db/memoryStore';
 
 @Injectable()
 export class UserService {
-  users: User[] = [
-    {
-      id: '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b',
-      login: 'user1',
-      password: 'user1',
-      version: 1,
-      createdAt: 223123132,
-      updatedAt: 88789897987,
-    },
-  ];
+  constructor(@Inject(MEMORY_STORE) private readonly store: MemoryStore) {}
 
-  assertUserId(id: string) {
+  assertId(id: string) {
     if (!isValidUUID(id))
       throw new HttpException(
         'userId is invalid (not uuid)',
@@ -25,7 +18,7 @@ export class UserService {
   }
 
   async assertUserExistById(id: string) {
-    const user = await this.isUserExist(id);
+    const user = await this.isExist(id);
 
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
   }
@@ -37,14 +30,18 @@ export class UserService {
   }
 
   async getAll(): Promise<User[]> {
-    return this.users;
+    const store = await this.store.getStore();
+
+    return store.users;
   }
 
-  async isUserExist(userId: string): Promise<boolean> {
-    return !!this.users.find(({ id }) => id === userId);
+  async isExist(userId: string): Promise<boolean> {
+    const store = await this.store.getStore();
+
+    return !!store.users.find(({ id }) => id === userId);
   }
 
-  async isUserPasswordCorrect(
+  async isPasswordCorrect(
     userId: string,
     userPassword: string,
   ): Promise<boolean> {
@@ -54,20 +51,23 @@ export class UserService {
   }
 
   async getById(userId: string): Promise<User | undefined> {
-    this.assertUserId(userId);
+    this.assertId(userId);
 
-    const user = this.users.find(({ id }) => id === userId);
+    const store = await this.store.getStore();
+    const user = store.users.find(({ id }) => id === userId);
 
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
 
     return user;
   }
 
-  async getUserByLogin(userLogin: string): Promise<User> {
-    return this.users.find(({ login }) => login === userLogin);
+  async getByLogin(userLogin: string): Promise<User> {
+    const store = await this.store.getStore();
+
+    return store.users.find(({ login }) => login === userLogin);
   }
 
-  async addUser(login: string, password: string): Promise<User> {
+  async add(login: string, password: string): Promise<User> {
     if (
       !login ||
       !password ||
@@ -76,7 +76,7 @@ export class UserService {
     )
       throw new HttpException('Invalid user data', HttpStatus.BAD_REQUEST);
 
-    const user = await this.getUserByLogin(login);
+    const user = await this.getByLogin(login);
 
     if (user) throw new HttpException('Use just exist', HttpStatus.BAD_REQUEST);
 
@@ -90,12 +90,15 @@ export class UserService {
       updatedAt: timestamp,
     };
 
-    this.users.push(newUser);
+    const store = await this.store.getStore();
+    const users = store.users;
+    users.push(newUser);
+    await this.store.setStore({ ...store, users });
 
     return newUser;
   }
 
-  async changeUserPasswordById(
+  async changePasswordById(
     id: string,
     oldPassword: string,
     newPassword: string,
@@ -108,22 +111,31 @@ export class UserService {
     )
       throw new HttpException('Invalid password data', HttpStatus.BAD_REQUEST);
 
-    this.assertUserId(id);
+    this.assertId(id);
 
-    if (!(await this.isUserPasswordCorrect(id, oldPassword)))
+    if (!(await this.isPasswordCorrect(id, oldPassword)))
       throw new HttpException('OldPassword is wrong', HttpStatus.FORBIDDEN);
 
-    const user = await this.getById(id);
-
-    user.password = newPassword;
-    user.updatedAt = getTimestamp();
-    user.version = user.version + 1;
+    const store = await this.store.getStore();
+    const users = store.users.map((user) => {
+      return user.id === id
+        ? {
+            ...user,
+            password: newPassword,
+            updatedAt: getTimestamp(),
+            version: user.version + 1,
+          }
+        : user;
+    });
+    await this.store.setStore({ ...store, users });
   }
 
   async removedById(userId: string) {
-    this.assertUserId(userId);
+    this.assertId(userId);
     await this.assertUserExistById(userId);
 
-    this.users = this.users.filter(({ id }) => id !== userId);
+    const store = await this.store.getStore();
+    const users = store.users.filter(({ id }) => id !== userId);
+    await this.store.setStore({ ...store, users });
   }
 }

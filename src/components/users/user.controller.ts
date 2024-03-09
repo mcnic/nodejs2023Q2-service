@@ -38,7 +38,7 @@ export class UserController {
   async addUser(@Body() dto: CreateUserDto) {
     const { login, password } = dto;
 
-    const user = await this.userService.addUser(login, password);
+    const user = await this.userService.add(login, password);
 
     return this.userService.getShowngUser(user);
   }
@@ -50,7 +50,7 @@ export class UserController {
   ): Promise<ShowingUser> {
     const { oldPassword, newPassword } = dto;
 
-    await this.userService.changeUserPasswordById(id, oldPassword, newPassword);
+    await this.userService.changePasswordById(id, oldPassword, newPassword);
 
     const user = await this.userService.getById(id);
 
