@@ -1,17 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Album } from './album.interface';
 import { isValidUUID, newUUID } from 'src/helpers/uuid';
+import { MEMORY_STORE } from 'src/db/memoryStore';
+import { MemoryStore } from 'src/db/memoryStore';
+import { TrackService } from '../tracks/track.service';
 
 @Injectable()
 export class AlbumService {
-  albums: Album[] = [
-    {
-      id: '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b',
-      name: 'album1',
-      year: 2020,
-      artistId: null,
-    },
-  ];
+  constructor(
+    private readonly trackService: TrackService,
+    @Inject(MEMORY_STORE) private readonly store: MemoryStore,
+  ) {}
 
   assertId(id: string) {
     if (!isValidUUID(id))
@@ -28,18 +27,28 @@ export class AlbumService {
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
   }
 
+  async assertAlbumIsCorrect(id: string) {
+    this.assertId(id);
+    await this.assertExistById(id);
+  }
+
   async getAll(): Promise<Album[]> {
-    return this.albums;
+    const store = await this.store.getStore();
+
+    return store.albums;
   }
 
   async isExist(albumId: string): Promise<boolean> {
-    return !!this.albums.find(({ id }) => id === albumId);
+    const store = await this.store.getStore();
+
+    return !!store.albums.find(({ id }) => id === albumId);
   }
 
   async getById(albumId: string): Promise<Album | undefined> {
     this.assertId(albumId);
 
-    const album = this.albums.find(({ id }) => id === albumId);
+    const store = await this.store.getStore();
+    const album = store.albums.find(({ id }) => id === albumId);
 
     if (!album)
       throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
@@ -59,14 +68,16 @@ export class AlbumService {
     )
       throw new HttpException('Invalid Album data', HttpStatus.BAD_REQUEST);
 
+    const store = await this.store.getStore();
+    const albums = store.albums;
     const newAlbum: Album = {
       id: newUUID(),
       name,
       year,
       artistId,
     };
-
-    this.albums.push(newAlbum);
+    albums.push(newAlbum);
+    await this.store.setStore({ ...store, albums });
 
     return newAlbum;
   }
@@ -86,20 +97,32 @@ export class AlbumService {
     )
       throw new HttpException('Invalid Album data', HttpStatus.BAD_REQUEST);
 
-    let album = this.getById(id);
-    album = {
-      id,
-      ...album,
-      ...dto,
-    };
+    let changedAlbum: Album;
 
-    return album;
+    const store = await this.store.getStore();
+    const albums = store.albums.map((album) => {
+      if (album.id === id) {
+        changedAlbum = {
+          ...album,
+          ...dto,
+        };
+        return changedAlbum;
+      }
+      return album;
+    });
+    await this.store.setStore({ ...store, albums });
+
+    return changedAlbum;
   }
 
   async removedById(albumId: string) {
     this.assertId(albumId);
     await this.assertExistById(albumId);
 
-    this.albums = this.albums.filter(({ id }) => id !== albumId);
+    const store = await this.store.getStore();
+    const albums = store.albums.filter(({ id }) => id !== albumId);
+    await this.store.setStore({ ...store, albums });
+
+    await this.trackService.removeAlbumFromAllTracks(albumId);
   }
 }
