@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -17,28 +18,28 @@ export class ArtistController {
 
   @Get()
   async getAll(): Promise<Artist[]> {
-    return await this.artistService.getAllArtists();
+    return await this.artistService.getAll();
   }
 
   @Get(':id')
   async getById(@Param('id') id: string): Promise<Artist | undefined> {
-    return await this.artistService.getArtistById(id);
+    return await this.artistService.getById(id);
   }
 
   @Post()
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   async add(@Body() dto: Artist) {
-    return await this.artistService.addArtist(dto);
+    return await this.artistService.add(dto);
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: Artist): Promise<Artist> {
-    return await this.artistService.changeArtistById(id, dto);
+    return await this.artistService.changeById(id, dto);
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
-    await this.artistService.removeArtistdById(id);
+    await this.artistService.removeById(id);
   }
 }
