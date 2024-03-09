@@ -78,7 +78,7 @@ export class UserService {
 
     const user = await this.getByLogin(login);
 
-    if (user) throw new HttpException('Use just exist', HttpStatus.BAD_REQUEST);
+    if (user) return user;
 
     const timestamp = getTimestamp();
     const newUser: User = {
