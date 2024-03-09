@@ -22,14 +22,13 @@ export class ArtistService {
       );
   }
 
-  async assertExistById(id: string) {
+  async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
     const artist = await this.isExist(id);
 
-    if (!artist)
-      throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
+    if (!artist) throw new HttpException('Artist not found', status);
   }
 
-  async assertIsCorrect(id: string) {
+  private async assertIsCorrect(id: string) {
     this.assertId(id);
     await this.assertExistById(id);
   }

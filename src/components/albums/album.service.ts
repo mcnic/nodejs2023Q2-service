@@ -20,14 +20,13 @@ export class AlbumService {
       );
   }
 
-  async assertExistById(id: string) {
+  async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
     const album = await this.isExist(id);
 
-    if (!album)
-      throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
+    if (!album) throw new HttpException('Album not found', status);
   }
 
-  async assertAlbumIsCorrect(id: string) {
+  private async assertAlbumIsCorrect(id: string) {
     this.assertId(id);
     await this.assertExistById(id);
   }
@@ -124,5 +123,14 @@ export class AlbumService {
     await this.store.setStore({ ...store, albums });
 
     await this.trackService.removeAlbumFromAllTracks(albumId);
+  }
+
+  async removeArtistFromAllAlbums(id: string) {
+    const store = await this.store.getStore();
+    const albums = store.albums.map((album) => {
+      if (album.artistId === id) album.artistId = null;
+      return album;
+    });
+    await this.store.setStore({ ...store, albums });
   }
 }
