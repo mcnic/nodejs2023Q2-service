@@ -70,3 +70,7 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+### Swagger
+
+after run node, open web page http://localhost:4000/api/

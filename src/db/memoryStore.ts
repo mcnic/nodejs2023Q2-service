@@ -31,7 +31,7 @@ export class MemoryStore {
   }
 
   async getStore(): Promise<Store> {
-    return new Promise((res, _rej) => {
+    return new Promise((res) => {
       res(this.store);
     });
   }
