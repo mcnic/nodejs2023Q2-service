@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Track } from './track.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { MEMORY_STORE } from 'src/db/memoryStore';
@@ -29,8 +35,7 @@ export class TrackService {
 
     const track = store.tracks.find(({ id }) => id === trackId);
 
-    if (!track)
-      throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+    if (!track) throw new NotFoundException('Track not found');
 
     return track;
   }

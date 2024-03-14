@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Artist } from './artist.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { MEMORY_STORE } from 'src/db/memoryStore';
@@ -40,8 +46,7 @@ export class ArtistService {
     const store = await this.store.getStore();
     const artist = store.artists.find(({ id }) => id === artistId);
 
-    if (!artist)
-      throw new HttpException('Artist not found', HttpStatus.NOT_FOUND);
+    if (!artist) throw new NotFoundException('Artist not found');
 
     return artist;
   }

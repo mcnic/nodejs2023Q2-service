@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ShowingUser, User } from '../user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { getTimestamp } from 'src/helpers/time';
@@ -12,7 +17,7 @@ export class UserService {
   async assertUserExistById(id: string) {
     const user = await this.isExist(id);
 
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    if (!user) throw new NotFoundException('User not found');
   }
 
   getShowngUser(user: User): ShowingUser {
@@ -47,7 +52,7 @@ export class UserService {
     const store = await this.store.getStore();
     const user = store.users.find(({ id }) => id === userId);
 
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    if (!user) throw new NotFoundException('User not found');
 
     return user;
   }
@@ -87,7 +92,7 @@ export class UserService {
     newPassword: string,
   ) {
     if (!(await this.isPasswordCorrect(id, oldPassword)))
-      throw new HttpException('OldPassword is wrong', HttpStatus.FORBIDDEN);
+      throw new ForbiddenException('OldPassword is wrong');
 
     const store = await this.store.getStore();
     const users = store.users.map((user) => {

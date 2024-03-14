@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Album } from './album.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { MEMORY_STORE } from 'src/db/memoryStore';
@@ -38,8 +44,7 @@ export class AlbumService {
     const store = await this.store.getStore();
     const album = store.albums.find(({ id }) => id === albumId);
 
-    if (!album)
-      throw new HttpException('Album not found', HttpStatus.NOT_FOUND);
+    if (!album) throw new NotFoundException('Album not found');
 
     return album;
   }
