@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { FavoritesResponse } from './favorite.interface';
 import { TrackService } from '../tracks/track.service';
 import { Artist } from '../artists/artist.interface';
@@ -11,8 +11,11 @@ import { MEMORY_STORE, MemoryStore } from 'src/db/memoryStore';
 @Injectable()
 export class FavoriteService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
+    @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
+    @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
     @Inject(MEMORY_STORE) private readonly store: MemoryStore,
   ) {}

@@ -4,8 +4,6 @@ import { validate as uuidValidate } from 'uuid';
 @Injectable()
 export class validateID implements PipeTransform<string, string> {
   transform(id: string) {
-    console.log('id', id);
-
     if (!uuidValidate(id))
       throw new BadRequestException('id is invalid (not uuid)');
 

@@ -6,5 +6,6 @@ import { MemoryDbProvider } from 'src/db/memoryStore';
 @Module({
   controllers: [TrackController],
   providers: [TrackService, MemoryDbProvider],
+  exports: [TrackService],
 })
 export class TrackModule {}

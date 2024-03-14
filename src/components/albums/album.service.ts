@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { Album } from './album.interface';
 import { newUUID } from 'src/helpers/uuid';
@@ -14,6 +15,7 @@ import { TrackService } from '../tracks/track.service';
 @Injectable()
 export class AlbumService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
     @Inject(MEMORY_STORE) private readonly store: MemoryStore,
   ) {}
