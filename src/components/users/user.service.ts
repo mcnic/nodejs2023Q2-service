@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ShowingUser, User } from '../user.interface';
-import { isValidUUID, newUUID } from 'src/helpers/uuid';
+import { newUUID } from 'src/helpers/uuid';
 import { getTimestamp } from 'src/helpers/time';
 import { MEMORY_STORE } from 'src/db/memoryStore';
 import { MemoryStore } from 'src/db/memoryStore';
@@ -9,14 +9,6 @@ import { MemoryStore } from 'src/db/memoryStore';
 export class UserService {
   constructor(@Inject(MEMORY_STORE) private readonly store: MemoryStore) {}
 
-  assertId(id: string) {
-    if (!isValidUUID(id))
-      throw new HttpException(
-        'userId is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
-  }
-
   async assertUserExistById(id: string) {
     const user = await this.isExist(id);
 
@@ -24,9 +16,10 @@ export class UserService {
   }
 
   getShowngUser(user: User): ShowingUser {
-    const { id, login, version, createdAt, updatedAt } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...userWithoutPassword } = user;
 
-    return { id, login, version, createdAt, updatedAt };
+    return { ...userWithoutPassword };
   }
 
   async getAll(): Promise<User[]> {
@@ -51,8 +44,6 @@ export class UserService {
   }
 
   async getById(userId: string): Promise<User | undefined> {
-    this.assertId(userId);
-
     const store = await this.store.getStore();
     const user = store.users.find(({ id }) => id === userId);
 
@@ -68,14 +59,6 @@ export class UserService {
   }
 
   async add(login: string, password: string): Promise<User> {
-    if (
-      !login ||
-      !password ||
-      typeof login !== 'string' ||
-      typeof password !== 'string'
-    )
-      throw new HttpException('Invalid user data', HttpStatus.BAD_REQUEST);
-
     const user = await this.getByLogin(login);
 
     if (user) return user;
@@ -103,16 +86,6 @@ export class UserService {
     oldPassword: string,
     newPassword: string,
   ) {
-    if (
-      !oldPassword ||
-      !newPassword ||
-      typeof oldPassword !== 'string' ||
-      typeof newPassword !== 'string'
-    )
-      throw new HttpException('Invalid password data', HttpStatus.BAD_REQUEST);
-
-    this.assertId(id);
-
     if (!(await this.isPasswordCorrect(id, oldPassword)))
       throw new HttpException('OldPassword is wrong', HttpStatus.FORBIDDEN);
 
@@ -131,7 +104,6 @@ export class UserService {
   }
 
   async removedById(userId: string) {
-    this.assertId(userId);
     await this.assertUserExistById(userId);
 
     const store = await this.store.getStore();

@@ -34,7 +34,6 @@ export class FavoriteService {
   }
 
   async addTrack(trackId: string) {
-    this.trackService.assertId(trackId);
     await this.trackService.assertExistById(
       trackId,
       HttpStatus.UNPROCESSABLE_ENTITY,
@@ -47,7 +46,6 @@ export class FavoriteService {
   }
 
   async removeTrack(trackId: string) {
-    this.trackService.assertId(trackId);
     await this.trackService.assertExistById(
       trackId,
       HttpStatus.UNPROCESSABLE_ENTITY,
@@ -62,7 +60,6 @@ export class FavoriteService {
   }
 
   async addAlbum(id: string) {
-    await this.albumService.assertId(id);
     await this.albumService.assertExistById(
       id,
       HttpStatus.UNPROCESSABLE_ENTITY,
@@ -75,7 +72,6 @@ export class FavoriteService {
   }
 
   async removeAlbum(id: string) {
-    await this.albumService.assertId(id);
     await this.albumService.assertExistById(
       id,
       HttpStatus.UNPROCESSABLE_ENTITY,
@@ -90,7 +86,6 @@ export class FavoriteService {
   }
 
   async addArtist(id: string) {
-    this.artistService.assertId(id);
     await this.artistService.assertExistById(
       id,
       HttpStatus.UNPROCESSABLE_ENTITY,
@@ -103,7 +98,6 @@ export class FavoriteService {
   }
 
   async removeArtist(id: string) {
-    this.artistService.assertId(id);
     await this.artistService.assertExistById(
       id,
       HttpStatus.UNPROCESSABLE_ENTITY,

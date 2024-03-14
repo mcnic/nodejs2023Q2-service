@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Album } from './album.interface';
-import { isValidUUID, newUUID } from 'src/helpers/uuid';
+import { newUUID } from 'src/helpers/uuid';
 import { MEMORY_STORE } from 'src/db/memoryStore';
 import { MemoryStore } from 'src/db/memoryStore';
 import { TrackService } from '../tracks/track.service';
@@ -12,14 +12,6 @@ export class AlbumService {
     @Inject(MEMORY_STORE) private readonly store: MemoryStore,
   ) {}
 
-  assertId(id: string) {
-    if (!isValidUUID(id))
-      throw new HttpException(
-        'id is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
-  }
-
   async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
     const album = await this.isExist(id);
 
@@ -27,7 +19,6 @@ export class AlbumService {
   }
 
   private async assertAlbumIsCorrect(id: string) {
-    this.assertId(id);
     await this.assertExistById(id);
   }
 
@@ -44,8 +35,6 @@ export class AlbumService {
   }
 
   async getById(albumId: string): Promise<Album | undefined> {
-    this.assertId(albumId);
-
     const store = await this.store.getStore();
     const album = store.albums.find(({ id }) => id === albumId);
 
@@ -57,15 +46,6 @@ export class AlbumService {
 
   async add(dto: Album): Promise<Album> {
     const { name, year, artistId } = dto;
-
-    if (
-      !name ||
-      typeof name !== 'string' ||
-      !year ||
-      typeof year !== 'number' ||
-      artistId === undefined
-    )
-      throw new HttpException('Invalid Album data', HttpStatus.BAD_REQUEST);
 
     const store = await this.store.getStore();
     const albums = store.albums;
@@ -82,19 +62,7 @@ export class AlbumService {
   }
 
   async changeById(id: string, dto: Album): Promise<Album> {
-    const { name, year, artistId } = dto;
-
-    this.assertId(id);
     await this.assertExistById(id);
-
-    if (
-      !name ||
-      typeof name !== 'string' ||
-      !year ||
-      typeof year !== 'number' ||
-      artistId === undefined
-    )
-      throw new HttpException('Invalid Album data', HttpStatus.BAD_REQUEST);
 
     let changedAlbum: Album;
 
@@ -115,7 +83,6 @@ export class AlbumService {
   }
 
   async removedById(albumId: string) {
-    this.assertId(albumId);
     await this.assertExistById(albumId);
 
     const store = await this.store.getStore();

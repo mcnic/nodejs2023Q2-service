@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
 import { Album } from './album.interface';
+import { validateID } from 'src/helpers/validate';
 
 @Controller('album')
 export class AlbumController {
@@ -22,7 +23,9 @@ export class AlbumController {
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<Album | undefined> {
+  async getById(
+    @Param('id', validateID) id: string,
+  ): Promise<Album | undefined> {
     return await this.albumService.getById(id);
   }
 
@@ -33,13 +36,16 @@ export class AlbumController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: Album): Promise<Album> {
+  async update(
+    @Param('id', validateID) id: string,
+    @Body() dto: Album,
+  ): Promise<Album> {
     return await this.albumService.changeById(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', validateID) id: string) {
     await this.albumService.removedById(id);
   }
 }

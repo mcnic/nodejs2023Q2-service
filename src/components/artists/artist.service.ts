@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Artist } from './artist.interface';
-import { isValidUUID, newUUID } from 'src/helpers/uuid';
+import { newUUID } from 'src/helpers/uuid';
 import { MEMORY_STORE } from 'src/db/memoryStore';
 import { MemoryStore } from 'src/db/memoryStore';
 import { AlbumService } from '../albums/album.service';
@@ -14,14 +14,6 @@ export class ArtistService {
     @Inject(MEMORY_STORE) private readonly store: MemoryStore,
   ) {}
 
-  assertId(id: string) {
-    if (!isValidUUID(id))
-      throw new HttpException(
-        'id is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
-  }
-
   async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
     const artist = await this.isExist(id);
 
@@ -29,7 +21,6 @@ export class ArtistService {
   }
 
   private async assertIsCorrect(id: string) {
-    this.assertId(id);
     await this.assertExistById(id);
   }
 
@@ -46,8 +37,6 @@ export class ArtistService {
   }
 
   async getById(artistId: string): Promise<Artist | undefined> {
-    this.assertId(artistId);
-
     const store = await this.store.getStore();
     const artist = store.artists.find(({ id }) => id === artistId);
 
@@ -59,9 +48,6 @@ export class ArtistService {
 
   async add(dto: Artist): Promise<Artist> {
     const { name, grammy } = dto;
-
-    if (!name || typeof name !== 'string' || grammy === undefined)
-      throw new HttpException('Invalid Artist data', HttpStatus.BAD_REQUEST);
 
     const store = await this.store.getStore();
     const artists = store.artists;
@@ -77,13 +63,7 @@ export class ArtistService {
   }
 
   async changeById(id: string, dto: Artist): Promise<Artist> {
-    const { name, grammy } = dto;
-
-    this.assertId(id);
     await this.assertExistById(id);
-
-    if (!name || typeof name !== 'string' || grammy === undefined)
-      throw new HttpException('Invalid Artist data', HttpStatus.BAD_REQUEST);
 
     let changedArtist: Artist;
 
@@ -104,7 +84,6 @@ export class ArtistService {
   }
 
   async removeById(artistId: string) {
-    this.assertId(artistId);
     await this.assertExistById(artistId);
 
     const store = await this.store.getStore();

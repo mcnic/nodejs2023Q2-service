@@ -14,6 +14,7 @@ import {
   ShowingUser,
   UpdatePasswordDto,
 } from '../user.interface';
+import { validateID } from 'src/helpers/validate';
 
 @Controller('user')
 export class UserController {
@@ -27,7 +28,9 @@ export class UserController {
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<ShowingUser | undefined> {
+  async getById(
+    @Param('id', validateID) id: string,
+  ): Promise<ShowingUser | undefined> {
     const user = await this.userService.getById(id);
 
     return this.userService.getShowngUser(user);
@@ -45,7 +48,7 @@ export class UserController {
 
   @Put(':id')
   async updateById(
-    @Param('id') id: string,
+    @Param('id', validateID) id: string,
     @Body() dto: UpdatePasswordDto,
   ): Promise<ShowingUser> {
     const { oldPassword, newPassword } = dto;
@@ -59,7 +62,7 @@ export class UserController {
 
   @Delete(':id')
   @HttpCode(204)
-  async removeById(@Param('id') id: string) {
+  async removeById(@Param('id', validateID) id: string) {
     await this.userService.removedById(id);
   }
 }

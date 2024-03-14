@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { Track } from './track.interface';
+import { validateID } from 'src/helpers/validate';
 
 @Controller('track')
 export class TrackController {
@@ -22,7 +23,9 @@ export class TrackController {
   }
 
   @Get(':id')
-  async getById(@Param('id') id: string): Promise<Track | undefined> {
+  async getById(
+    @Param('id', validateID) id: string,
+  ): Promise<Track | undefined> {
     return await this.trackService.getById(id);
   }
 
@@ -34,7 +37,7 @@ export class TrackController {
 
   @Put(':id')
   async updateById(
-    @Param('id') id: string,
+    @Param('id', validateID) id: string,
     @Body() dto: Track,
   ): Promise<Track> {
     return await this.trackService.changeById(id, dto);
@@ -42,7 +45,7 @@ export class TrackController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeById(@Param('id') id: string) {
+  async removeById(@Param('id', validateID) id: string) {
     await this.trackService.removeById(id);
   }
 }
