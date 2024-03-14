@@ -74,3 +74,28 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 ### Swagger
 
 after run node, open web page http://localhost:4000/api/
+
+## Docker
+
+run postgres container:
+
+```
+cd docker/postgres
+docker build -t pgres .
+docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword pgres
+may be add '-d' key daemon mode
+```
+
+container for main app container:
+
+```
+docker build -t node-service .
+docker run -it --rm -p 4000:4000 node-service
+may be add '-d' key daemon mode
+```
+
+test database:
+
+```
+psql -h localhost -p 5432 -U postgres -d postgres -W
+```
