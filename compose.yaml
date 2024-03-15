@@ -1,0 +1,89 @@
+version: '3.8'
+services:
+  db:
+    build: ./db/
+    restart: on-failure
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=${PG_NAME}
+    container_name: postgres-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # - ./logs:/usr/src/app/logs
+      # - ./src:/usr/src/app/src
+    networks:
+      - my_network
+    ports:
+      - ${PG_PORT}:${PG_PORT}
+
+  # nest:
+  #   build: .
+  #   command: npm run start:dev
+  #   # develop: - TODO - don't working
+  #   #   watch:
+  #   #     - action: sync
+  #   #       path: ./src
+  #   #       target: /src/src
+  #   #       ignore:
+  #   #         - node_modules/
+  #   #     - action: rebuild
+  #   #       path: package.json
+  #   image: node-service
+  #   restart: on-failure
+  #   # environment:
+  #   # - DB_TYPE=${DB_TYPE}
+  #   # - POSTGRES_HOST=${POSTGRES_HOST}
+  #   # - POSTGRES_USER=${DATABASE_USER}
+  #   # - POSTGRES_PASS=${DATABASE_PASSWORD}
+  #   # - POSTGRES_DB=${DB_NAME}
+  #   # - POSTGRES_SYNC=false
+  #   # - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+  #   # - POSTGRES_PORT=${POSTGRES_PORT}
+  #   # - APP_EXPIRES=${TOKEN_EXPIRE_TIME}
+  #   # - APP_PORT=${PORT}
+  #   # - LVL_LOG=${LVL_LOG}
+  #   ports:
+  #     - ${PORT}:${PORT}
+  #   container_name: nest-rest-service
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - my_network
+  #   volumes:
+  #     - .:/app
+  #     # - node_modules:/app/node_modules
+  #     # - migrations:/app/migrations
+  #     # - .:/app
+  #     # - node_modules:/app/node_modules
+  #     # - migrations:/app/migrations
+  #     - logs:/usr/src/app/logs
+  #     # - src:/usr/src/app/src
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: on-failure
+    container_name: pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_LISTEN_PORT=80
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db
+    networks:
+      - my_network
+
+volumes:
+  pgdata:
+  pgadmin-data:
+  migrations:
+  node_modules:
+  logs:
+
+networks:
+  my_network:
+    driver: bridge

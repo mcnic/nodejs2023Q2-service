@@ -95,7 +95,21 @@ may be add '-d' key daemon mode
 ```
 
 test database:
+`psql -h localhost -p 5432 -U postgres -d postgres -W`
 
-```
-psql -h localhost -p 5432 -U postgres -d postgres -W
-```
+### run containers:
+
+`docker-compose up`
+
+### pgadmin:
+
+1. `http://localhost:8080` with login `PGADMIN_DEFAULT_EMAIL` and password `PGADMIN_DEFAULT_PASSWORD` from .env
+1. add server. Hostname may be found: run `docker inspect postgres-db`, then find "Config" : {"Hostname": "<you need this!>"}, e.g. a043d2f46a82. Login and password - from .env
+
+### migration
+
+`npx prisma migrate dev --name "init"`
+
+### seed
+
+`npx prisma db seed`

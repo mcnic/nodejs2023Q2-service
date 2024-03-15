@@ -2,14 +2,14 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json .
+# COPY package*.json .
 
-RUN npm ci
+# RUN npm ci
 
-COPY . .
+# COPY . .
 
-EXPOSE ${PORT}
+# EXPOSE ${PORT}
 
 # VOLUME ["app"]
 
-CMD ["npm", "run", "start:dev"]
+# CMD ["npm", "run", "start:dev"]
