@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,16 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model Article {
-//   id          Int      @id @default(autoincrement())
-//   title       String   @unique
-//   description String?
-//   body        String
-//   published   Boolean  @default(false)
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-// }
-
 model User {
   id        String   @id
   login     String   @unique
@@ -30,4 +14,28 @@ model User {
   version   Int
   createdAt DateTime
   updatedAt DateTime
+}
+
+model Album {
+  id       String   @id
+  name     String
+  year     Int
+  artistId String?
+  favorite Boolean? @default(false)
+}
+
+model Artist {
+  id       String   @id
+  name     String
+  grammy   Boolean
+  favorite Boolean? @default(false)
+}
+
+model Track {
+  id       String   @id
+  name     String
+  artistId String?
+  albumId  String?
+  duration Int
+  favorite Boolean? @default(false)
 }

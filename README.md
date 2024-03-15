@@ -75,7 +75,9 @@ For more information, visit: https://code.visualstudio.com/docs/editor/debugging
 
 after run node, open web page http://localhost:4000/api/
 
-## Docker
+## Manuals
+
+### Containers
 
 run postgres container:
 
@@ -94,22 +96,30 @@ docker run -it --rm -p 4000:4000 node-service
 may be add '-d' key daemon mode
 ```
 
-test database:
+### Test database:
+
 `psql -h localhost -p 5432 -U postgres -d postgres -W`
 
-### run containers:
+run all containers: `docker-compose up`
 
-`docker-compose up`
-
-### pgadmin:
+### Pgadmin:
 
 1. `http://localhost:8080` with login `PGADMIN_DEFAULT_EMAIL` and password `PGADMIN_DEFAULT_PASSWORD` from .env
 1. add server. Hostname may be found: run `docker inspect postgres-db`, then find "Config" : {"Hostname": "<you need this!>"}, e.g. a043d2f46a82. Login and password - from .env
 
-### migration
+### Migration
 
-`npx prisma migrate dev --name "init"`
+`npx prisma migrate dev`
 
-### seed
+to add new megration `npx prisma migrate dev --name "init"`
 
-`npx prisma db seed`
+to seed `npx prisma db seed`
+
+# Docker Install and testing
+
+```
+docker-compose up
+npx prisma migrate dev
+npm test
+
+```
