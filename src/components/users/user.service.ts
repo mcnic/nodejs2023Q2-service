@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ShowingUser, User } from '../user.interface';
+import { User } from '../user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
 
