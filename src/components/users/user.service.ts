@@ -19,18 +19,6 @@ export class UserService {
     if (!user) throw new NotFoundException('User not found');
   }
 
-  getShowngUser(user: User): ShowingUser {
-    const { id, login, version, createdAt, updatedAt } = user;
-
-    return {
-      id,
-      login,
-      version,
-      createdAt: createdAt.getTime(),
-      updatedAt: updatedAt.getTime(),
-    };
-  }
-
   async getAll(): Promise<User[]> {
     return await this.prisma.user.findMany();
   }

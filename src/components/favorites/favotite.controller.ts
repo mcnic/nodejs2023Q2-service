@@ -6,16 +6,19 @@ import {
   HttpStatus,
   Param,
   Post,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 import { FavoritesResponse } from './favorite.interface';
 import { validateID } from 'src/helpers/validate';
+import { RemoveFavoriteFromFavorites } from 'src/helpers/removeFavorite.interceptor';
 
 @Controller('favs')
 export class FavoriteController {
   constructor(private readonly favoriteService: FavoriteService) {}
 
   @Get()
+  @UseInterceptors(new RemoveFavoriteFromFavorites())
   async getAll(): Promise<FavoritesResponse> {
     return await this.favoriteService.getAll();
   }

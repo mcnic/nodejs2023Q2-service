@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -15,49 +16,48 @@ import {
   UpdatePasswordDto,
 } from '../user.interface';
 import { validateID } from 'src/helpers/validate';
+import {
+  TranformUser,
+  TranformUsers,
+} from 'src/helpers/removePassword.interceptor';
+import { User } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getAll(): Promise<ShowingUser[]> {
-    const users = await this.userService.getAll();
-
-    return users.map((user) => this.userService.getShowngUser(user));
+  @UseInterceptors(new TranformUsers())
+  async getAll(): Promise<User[]> {
+    return await this.userService.getAll();
   }
 
   @Get(':id')
-  async getById(
-    @Param('id', validateID) id: string,
-  ): Promise<ShowingUser | undefined> {
-    const user = await this.userService.getById(id);
-
-    return this.userService.getShowngUser(user);
+  @UseInterceptors(new TranformUser())
+  async getById(@Param('id', validateID) id: string): Promise<User> {
+    return await this.userService.getById(id);
   }
 
   @Post()
   @HttpCode(201)
-  async addUser(@Body() dto: CreateUserDto) {
+  @UseInterceptors(new TranformUser())
+  async addUser(@Body() dto: CreateUserDto): Promise<User> {
     const { login, password } = dto;
 
-    const user = await this.userService.add(login, password);
-
-    return this.userService.getShowngUser(user);
+    return await this.userService.add(login, password);
   }
 
   @Put(':id')
+  @UseInterceptors(new TranformUser())
   async updateById(
     @Param('id', validateID) id: string,
     @Body() dto: UpdatePasswordDto,
-  ): Promise<ShowingUser> {
+  ): Promise<User> {
     const { oldPassword, newPassword } = dto;
 
     await this.userService.changePasswordById(id, oldPassword, newPassword);
 
-    const user = await this.userService.getById(id);
-
-    return this.userService.getShowngUser(user);
+    return await this.userService.getById(id);
   }
 
   @Delete(':id')

@@ -6,7 +6,6 @@ import { Album } from '../albums/album.interface';
 import { Track } from '../tracks/track.interface';
 import { AlbumService } from '../albums/album.service';
 import { ArtistService } from '../artists/artist.service';
-import { MEMORY_STORE, MemoryStore } from 'src/db/memoryStore';
 
 @Injectable()
 export class FavoriteService {
@@ -17,21 +16,12 @@ export class FavoriteService {
     private readonly albumService: AlbumService,
     @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
-    @Inject(MEMORY_STORE) private readonly store: MemoryStore,
   ) {}
 
   async getAll(): Promise<FavoritesResponse> {
-    const store = await this.store.getStore();
-
-    const artists: Artist[] = (await this.artistService.getAll()).filter(
-      ({ id }) => store.favorites.artists.includes(id),
-    );
-    const albums: Album[] = (await this.albumService.getAll()).filter(
-      ({ id }) => store.favorites.albums.includes(id),
-    );
-    const tracks: Track[] = (await this.trackService.getAll()).filter(
-      ({ id }) => store.favorites.tracks.includes(id),
-    );
+    const artists: Artist[] = await this.artistService.getAllFavorited();
+    const albums: Album[] = await this.albumService.getAllFavorited();
+    const tracks: Track[] = await this.trackService.getAllFavorited();
 
     return { artists, albums, tracks };
   }
@@ -42,10 +32,7 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const favorites = store.favorites;
-    favorites.tracks.push(trackId);
-    await this.store.setStore({ ...store, favorites });
+    await this.trackService.changeFavoriteById(trackId, true);
   }
 
   async removeTrack(trackId: string) {
@@ -54,12 +41,7 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const tracks = store.favorites.tracks.filter((id) => id !== trackId);
-    await this.store.setStore({
-      ...store,
-      favorites: { ...store.favorites, tracks },
-    });
+    await this.trackService.changeFavoriteById(trackId, false);
   }
 
   async addAlbum(id: string) {
@@ -68,10 +50,7 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const favorites = store.favorites;
-    favorites.albums.push(id);
-    await this.store.setStore({ ...store, favorites });
+    await this.albumService.changeFavoriteById(id, true);
   }
 
   async removeAlbum(id: string) {
@@ -80,12 +59,7 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const albums = store.favorites.albums.filter((albumId) => albumId !== id);
-    await this.store.setStore({
-      ...store,
-      favorites: { ...store.favorites, albums },
-    });
+    await this.albumService.changeFavoriteById(id, false);
   }
 
   async addArtist(id: string) {
@@ -94,10 +68,7 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const favorites = store.favorites;
-    favorites.artists.push(id);
-    await this.store.setStore({ ...store, favorites });
+    await this.artistService.changeFavoriteById(id, true);
   }
 
   async removeArtist(id: string) {
@@ -106,13 +77,6 @@ export class FavoriteService {
       HttpStatus.UNPROCESSABLE_ENTITY,
     );
 
-    const store = await this.store.getStore();
-    const artists = store.favorites.artists.filter(
-      (artistId) => artistId !== id,
-    );
-    await this.store.setStore({
-      ...store,
-      favorites: { ...store.favorites, artists },
-    });
+    await this.artistService.changeFavoriteById(id, false);
   }
 }

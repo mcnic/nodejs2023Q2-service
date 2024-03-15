@@ -8,16 +8,15 @@ import {
 } from '@nestjs/common';
 import { Album } from './album.interface';
 import { newUUID } from 'src/helpers/uuid';
-import { MEMORY_STORE } from 'src/db/memoryStore';
-import { MemoryStore } from 'src/db/memoryStore';
 import { TrackService } from '../tracks/track.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
-    @Inject(MEMORY_STORE) private readonly store: MemoryStore,
+    private prisma: PrismaService,
   ) {}
 
   async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
@@ -26,25 +25,27 @@ export class AlbumService {
     if (!album) throw new HttpException('Album not found', status);
   }
 
-  private async assertAlbumIsCorrect(id: string) {
-    await this.assertExistById(id);
-  }
-
   async getAll(): Promise<Album[]> {
-    const store = await this.store.getStore();
-
-    return store.albums;
+    return await this.prisma.album.findMany();
   }
 
-  async isExist(albumId: string): Promise<boolean> {
-    const store = await this.store.getStore();
+  async getAllFavorited(): Promise<Album[]> {
+    return await this.prisma.album.findMany({
+      where: { favorite: true },
+    });
+  }
+  async isExist(id: string): Promise<boolean> {
+    const album = await this.prisma.album.findFirst({
+      where: { id },
+    });
 
-    return !!store.albums.find(({ id }) => id === albumId);
+    return !!album;
   }
 
-  async getById(albumId: string): Promise<Album | undefined> {
-    const store = await this.store.getStore();
-    const album = store.albums.find(({ id }) => id === albumId);
+  async getById(id: string): Promise<Album | undefined> {
+    const album = await this.prisma.album.findFirst({
+      where: { id },
+    });
 
     if (!album) throw new NotFoundException('Album not found');
 
@@ -54,16 +55,14 @@ export class AlbumService {
   async add(dto: Album): Promise<Album> {
     const { name, year, artistId } = dto;
 
-    const store = await this.store.getStore();
-    const albums = store.albums;
-    const newAlbum: Album = {
-      id: newUUID(),
-      name,
-      year,
-      artistId,
-    };
-    albums.push(newAlbum);
-    await this.store.setStore({ ...store, albums });
+    const newAlbum = await this.prisma.album.create({
+      data: {
+        id: newUUID(),
+        name,
+        year,
+        artistId,
+      },
+    });
 
     return newAlbum;
   }
@@ -71,40 +70,41 @@ export class AlbumService {
   async changeById(id: string, dto: Album): Promise<Album> {
     await this.assertExistById(id);
 
-    let changedAlbum: Album;
-
-    const store = await this.store.getStore();
-    const albums = store.albums.map((album) => {
-      if (album.id === id) {
-        changedAlbum = {
-          ...album,
-          ...dto,
-        };
-        return changedAlbum;
-      }
-      return album;
+    return await this.prisma.album.update({
+      where: { id },
+      data: {
+        ...dto,
+      },
     });
-    await this.store.setStore({ ...store, albums });
-
-    return changedAlbum;
   }
 
-  async removedById(albumId: string) {
-    await this.assertExistById(albumId);
+  async removedById(id: string) {
+    await this.assertExistById(id);
 
-    const store = await this.store.getStore();
-    const albums = store.albums.filter(({ id }) => id !== albumId);
-    await this.store.setStore({ ...store, albums });
+    await this.prisma.album.delete({
+      where: { id },
+    });
 
-    await this.trackService.removeAlbumFromAllTracks(albumId);
+    await this.trackService.removeAlbumFromAllTracks(id);
   }
 
   async removeArtistFromAllAlbums(id: string) {
-    const store = await this.store.getStore();
-    const albums = store.albums.map((album) => {
-      if (album.artistId === id) album.artistId = null;
-      return album;
+    await this.prisma.album.updateMany({
+      where: { artistId: id },
+      data: {
+        artistId: null,
+      },
     });
-    await this.store.setStore({ ...store, albums });
+  }
+
+  async changeFavoriteById(id: string, favorite: boolean) {
+    await this.assertExistById(id);
+
+    await this.prisma.album.update({
+      where: { id },
+      data: {
+        favorite,
+      },
+    });
   }
 }
