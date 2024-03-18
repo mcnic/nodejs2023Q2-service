@@ -15,7 +15,7 @@ import { validateID } from 'src/helpers/validate';
 import {
   TranformUser,
   TranformUsers,
-} from 'src/helpers/removePassword.interceptor';
+} from 'src/helpers/tranformUser.interceptor';
 import { User } from '@prisma/client';
 
 @Controller('user')
