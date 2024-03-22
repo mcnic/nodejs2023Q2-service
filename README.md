@@ -1,5 +1,11 @@
 # Home Library Service
 
+# Docker Install and testing
+
+```
+docker compose up --build
+```
+
 ## Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
@@ -82,25 +88,27 @@ after run node, open web page http://localhost:4000/api/
 run postgres container:
 
 ```
-cd docker/postgres
+cd db
 docker build -t pgres .
 docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword pgres
-may be add '-d' key daemon mode
 ```
+
+shell in docker container `docker compose exec db sh`
+
+may be add '-d' key for daemon mode
 
 container for main app container:
 
 ```
 docker build -t node-service .
-docker run -it --rm -p 4000:4000 node-service
-may be add '-d' key daemon mode
+docker run -it --rm -p 4000:4000 -v ./src:/app/src node-service
 ```
 
 ### Test database:
 
 `psql -h localhost -p 5432 -U postgres -d postgres -W`
 
-run all containers: `docker-compose up`
+run all containers: `docker compose up`
 
 ### Pgadmin:
 
@@ -115,11 +123,6 @@ to add new megration `npx prisma migrate dev --name "init"`
 
 to seed `npx prisma db seed`
 
-# Docker Install and testing
+### Share
 
-```
-docker-compose up
-npx prisma migrate dev
-npm test
-
-```
+for clear all cache `docker system prune -a`

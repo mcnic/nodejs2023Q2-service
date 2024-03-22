@@ -1,7 +1,6 @@
 dist
-node_module
+node_modules
 
-docker
 .dockerignore
 Dockerfile
 docker-compose.yaml
@@ -10,3 +9,9 @@ docker-compose.yaml
 **/.gitignore
 
 .env
+pgdata
+logs
+db
+score*
+
+src
