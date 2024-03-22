@@ -1,7 +1,9 @@
 version: '3.8'
 services:
   db:
-    build: ./db/
+    build:
+      context: ./db
+      dockerfile: ./Dockerfile
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${PG_USER}
@@ -10,14 +12,15 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - pglog:/var/lib/postgresql/data/log
-    command: [
+    command:
+      [
         'postgres',
         '-c',
         'logging_collector=on',
         '-c',
         'log_directory=/var/lib/postgresql/data/log',
-        # '-c',
-        # 'log_statement=all',
+        '-c',
+        'log_statement=all',
       ]
     networks:
       - my_network
@@ -26,19 +29,11 @@ services:
 
   app:
     image: mcnic/rs-nest-service-app
-    # build:
-    #   context: .
-    #   dockerfile: ./Dockerfile
     restart: unless-stopped
     # env_file:
     #   - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
-    # - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-    # - POSTGRES_PORT=${POSTGRES_PORT}
-    # - APP_EXPIRES=${TOKEN_EXPIRE_TIME}
-    # - APP_PORT=${PORT}
-    # - LVL_LOG=${LVL_LOG}
     ports:
       - ${PORT}:${PORT}
     depends_on:
