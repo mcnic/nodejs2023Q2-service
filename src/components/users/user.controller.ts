@@ -10,13 +10,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdatePasswordDto } from '../user.interface';
+import { CreateUserDto, UpdatePasswordDto, User } from '../user.interface';
 import { validateID } from 'src/helpers/validate';
 import {
   TranformUser,
   TranformUsers,
 } from 'src/helpers/tranformUser.interceptor';
-import { User } from '@prisma/client';
 
 @Controller('user')
 export class UserController {
