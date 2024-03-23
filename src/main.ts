@@ -3,12 +3,24 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
-import { MyLogger } from './components/logger/logger.service';
+import { Logger } from './components/logger/logger.service';
+import { HttpExceptionFilter } from './filters/HttpExceptionFilter.filter';
 
 async function bootstrap() {
   config();
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  app.useLogger(app.get(MyLogger));
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
+
+  process.on('uncaughtException', (err) => {
+    logger.error(`Uncaught Exception - ${err.message}`);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    logger.warn(`Uncaught Rejection (may be in promise) - ${reason}`);
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('The home library')
