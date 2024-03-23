@@ -30,8 +30,8 @@ services:
   app:
     image: mcnic/rs-nest-service-app
     restart: unless-stopped
-    # env_file:
-    #   - .env
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
     ports:
