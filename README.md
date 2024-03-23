@@ -126,3 +126,4 @@ to seed `npx prisma db seed`
 ### Share
 
 for clear all cache `docker system prune -a`
+show log watch `docker compose logs -f`, or once `docker logs <container>`

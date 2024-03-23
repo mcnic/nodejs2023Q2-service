@@ -1,64 +1,72 @@
 import { Injectable, LoggerService } from '@nestjs/common';
-import { isObject } from 'class-validator';
-
-/* const level = {
-  0: 'error',
-  1: 'warn',
-  2: 'log',
-  3: 'debug',
-  4: 'verbose',
-}; */
-
+import { ConsoleLoggerService } from './consoleLogger.service';
+import { FileLoggerService } from './fileLogger.service';
+import { LogLevel } from './logger.interface';
 @Injectable()
-export class MyLogger implements LoggerService {
+export class Logger implements LoggerService {
   level: number;
   locale: string;
   timeZone: string;
+  consoleLog: boolean;
+  fileLog: boolean;
+  fileLogger: FileLoggerService;
 
-  constructor() {
+  constructor(private readonly consoleLogger: ConsoleLoggerService) {
     this.level = parseInt(process.env.LOG_LEVEL);
     if (Number.isNaN(this.level)) this.level = 2;
 
     this.locale = process.env.LOCALE || 'en-US';
     this.timeZone = process.env.TIME_ZONE || 'UTC';
+
+    this.consoleLog = Boolean(process.env.LOG_TO_CONSOLE) || false;
+    this.fileLog = Boolean(process.env.LOG_TO_FILE) || false;
+
+    if (this.fileLog) {
+      const pathLogFile = process.env.LOG_FILE_PATH || '/var/log/nest-logs.log';
+      const pathErrorFile =
+        process.env.ERROR_FILE_PATH || '/var/log/nest-errors.log';
+      const logFileSizeLimit = parseInt(process.env.LOG_FILE_MAX_SIZE) || 1;
+      this.fileLogger = new FileLoggerService(
+        pathLogFile,
+        pathErrorFile,
+        logFileSizeLimit,
+      );
+    }
   }
 
   error(message: string | JSON) {
-    this.makeLogProc(0, message, 31);
+    this.doLog(0, message, 31);
   }
 
   warn(message: string | JSON) {
-    this.makeLogProc(1, message, 33);
+    this.doLog(1, message, 33);
   }
 
   log(message: string | JSON) {
-    this.makeLogProc(2, message, 32);
+    this.doLog(2, message, 32);
   }
 
   debug?(message: string | JSON) {
-    this.makeLogProc(3, message, 94);
+    this.doLog(3, message, 94);
   }
 
   verbose?(message: string | JSON) {
-    this.makeLogProc(4, message, 95);
+    this.doLog(4, message, 95);
   }
 
-  fatal(message: string | JSON) {
-    this.makeLogProc(0, message, 91);
-  }
-
-  makeLogProc(level: number, message: string | JSON, start = 33) {
+  async doLog(level: LogLevel, message: string | JSON, ttyColorCode = 33) {
     if (level > this.level) return;
 
     const date = new Date().toLocaleTimeString(this.locale, {
       timeZone: this.timeZone,
     });
 
-    if (isObject(message)) {
-      console.log(`[${date}] - \x1b[${start}mobject:\x1b[0m`);
-      console.log(message);
-    } else {
-      console.log(`[${date}] - \x1b[${start}m${message}\x1b[0m`);
+    if (this.consoleLog) {
+      this.consoleLogger.log({ level, date, message, ttyColorCode });
+    }
+
+    if (this.fileLog) {
+      await this.fileLogger.log({ level, date, message }, level !== 0);
     }
   }
 }

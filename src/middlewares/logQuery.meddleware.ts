@@ -8,7 +8,7 @@ export class LogQueryMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const { url, params, body } = req;
     const { statusCode } = res;
-    this.logger.log({ url, params, body, statusCode });
+    this.logger.debug({ url, params, body, statusCode });
     next();
   }
 }
