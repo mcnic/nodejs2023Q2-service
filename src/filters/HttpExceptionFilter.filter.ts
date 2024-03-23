@@ -16,7 +16,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     let status = exception.getStatus();
-    let message = exception.message;
+
+    const resp = exception.getResponse();
+    const respRecord: Record<string, any> =
+      typeof resp === 'string' ? {} : resp;
+    let message = respRecord.message;
 
     if (!(exception instanceof HttpException)) {
       status = 500;
