@@ -3,12 +3,12 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
+import { MyLogger } from './components/logger/logger.service';
 
 async function bootstrap() {
   config();
-  const PORT = process.env.PORT ?? 4000;
-  const app = await NestFactory.create(AppModule);
-  console.info(`Server start on http://localhost:${PORT}`);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.useLogger(app.get(MyLogger));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('The home library')
@@ -25,6 +25,9 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+
+  const PORT = process.env.PORT ?? 4000;
+  console.info(`Server start on http://localhost:${PORT}`);
 
   await app.listen(PORT);
 }
