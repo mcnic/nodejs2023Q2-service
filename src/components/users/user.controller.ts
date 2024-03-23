@@ -15,7 +15,7 @@ import { validateID } from 'src/helpers/validate';
 import {
   TranformUser,
   TranformUsers,
-} from 'src/helpers/tranformUser.interceptor';
+} from 'src/interceptors/tranformUser.interceptor';
 
 @Controller('user')
 export class UserController {
