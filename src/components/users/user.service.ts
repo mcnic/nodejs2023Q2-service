@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '../user.interface';
+import { User } from './user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -68,6 +68,16 @@ export class UserService {
     });
 
     return newUser;
+  }
+
+  async testAuth(login: string, password: string) {
+    const user = await this.getByLogin(login);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (user.password !== password) {
+      throw new ForbiddenException('Password is wrong');
+    }
   }
 
   async changePasswordById(

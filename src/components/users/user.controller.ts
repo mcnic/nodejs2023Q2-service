@@ -10,7 +10,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdatePasswordDto, User } from '../user.interface';
+import { User } from './user.interface';
+import { UpdatePasswordDto } from './dto/updateUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import { validateID } from 'src/helpers/validate';
 import {
   TranformUser,
