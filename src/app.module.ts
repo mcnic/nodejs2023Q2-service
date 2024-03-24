@@ -6,6 +6,7 @@ import { AlbumModule } from './components/albums/album.module';
 import { FavoriteModule } from './components/favorites/favorite.module';
 import { LoggerModule } from './components/logger/logger.module';
 import { LogQueryMiddleware } from './middlewares/logQuery.meddleware';
+import { AuthModule } from './components/auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LogQueryMiddleware } from './middlewares/logQuery.meddleware';
     AlbumModule,
     FavoriteModule,
     LoggerModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
