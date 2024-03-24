@@ -20,6 +20,10 @@ export class UserService {
     return getHash(password, this.saltRound);
   }
 
+  async comparePassword(password: string, hash: string) {
+    return await isMatch(password, hash);
+  }
+
   async assertUserExistById(id: string) {
     const user = await this.prisma.user.findFirst({
       where: { id },
@@ -84,7 +88,7 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (!(await isMatch(password, user.password))) {
+    if (!(await this.comparePassword(password, user.password))) {
       throw new ForbiddenException('Password is wrong');
     }
   }
@@ -96,7 +100,7 @@ export class UserService {
   ) {
     const user = await this.getById(id);
 
-    if (!(await isMatch(oldPassword, user.password))) {
+    if (!(await this.comparePassword(oldPassword, user.password))) {
       throw new ForbiddenException('OldPassword is wrong');
     }
 
