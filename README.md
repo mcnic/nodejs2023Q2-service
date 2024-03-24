@@ -6,6 +6,18 @@
 docker compose up --build
 ```
 
+# Docker scout for vulnerabilities scanning
+
+- install
+
+```
+curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+sh install-scout.sh
+```
+
+- use
+  `nmp run scan` or `docker scout cves mcnic/rs-nest-service-app`
+
 ## Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
