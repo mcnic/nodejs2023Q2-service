@@ -6,10 +6,21 @@ import {
 import { User } from './user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { genSalt, getHash, isMatch } from 'src/helpers/bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  saltRound: number;
+
+  constructor(private prisma: PrismaService) {
+    this.saltRound = parseInt(process.env.BCRYPT_SALT_ROUND) || 10;
+  }
+
+  async cryptPassword(password: string) {
+    const salt = await genSalt(this.saltRound);
+
+    return getHash(password, salt);
+  }
 
   async assertUserExistById(id: string) {
     const user = await this.prisma.user.findFirst({
@@ -60,7 +71,7 @@ export class UserService {
       data: {
         id: newUUID(),
         login,
-        password,
+        password: await this.cryptPassword(password),
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -75,7 +86,7 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (user.password !== password) {
+    if (!(await isMatch(password, user.password))) {
       throw new ForbiddenException('Password is wrong');
     }
   }
@@ -87,14 +98,14 @@ export class UserService {
   ) {
     const user = await this.getById(id);
 
-    if (user.password !== oldPassword) {
+    if (!(await isMatch(oldPassword, user.password))) {
       throw new ForbiddenException('OldPassword is wrong');
     }
 
     await this.prisma.user.update({
       where: { id },
       data: {
-        password: newPassword,
+        password: await this.cryptPassword(newPassword),
         version: user.version + 1,
         updatedAt: new Date(),
       },
