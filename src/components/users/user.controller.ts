@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -36,7 +37,7 @@ export class UserController {
   }
 
   @Post()
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(new TranformUser())
   async addUser(@Body() dto: CreateUserDto): Promise<User> {
     const { login, password } = dto;
@@ -58,7 +59,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeById(@Param('id', validateID) id: string) {
     await this.userService.removedById(id);
   }

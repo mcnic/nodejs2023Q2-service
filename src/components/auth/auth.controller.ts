@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   HttpCode,
+  HttpStatus,
   Post,
   UnprocessableEntityException,
   ValidationPipe,
@@ -26,13 +27,13 @@ export class AuthController {
   }
 
   @Post('login')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async login(@Body() dto: CreateUserDto): Promise<string> {
     return await this.authService.login(dto);
   }
 
   @Post('refresh')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   async refresh(
     @Body(new validateRefreshToken())
     // don't use RefreshTokenDto for manual validate!
