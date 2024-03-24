@@ -6,7 +6,7 @@ import {
 import { User } from './user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { genSalt, getHash, isMatch } from 'src/helpers/bcrypt';
+import { getHash, isMatch } from 'src/helpers/bcrypt';
 
 @Injectable()
 export class UserService {
@@ -17,9 +17,7 @@ export class UserService {
   }
 
   async cryptPassword(password: string) {
-    const salt = await genSalt(this.saltRound);
-
-    return getHash(password, salt);
+    return getHash(password, this.saltRound);
   }
 
   async assertUserExistById(id: string) {
