@@ -6,23 +6,14 @@ import {
 import { User } from './user.interface';
 import { newUUID } from 'src/helpers/uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { getHash, isMatch } from 'src/helpers/bcrypt';
+import { PasswordService } from '../password/password.service';
 
 @Injectable()
 export class UserService {
-  saltRound: number;
-
-  constructor(private prisma: PrismaService) {
-    this.saltRound = parseInt(process.env.BCRYPT_SALT_ROUND) || 10;
-  }
-
-  async cryptPassword(password: string) {
-    return getHash(password, this.saltRound);
-  }
-
-  async comparePassword(password: string, hash: string) {
-    return await isMatch(password, hash);
-  }
+  constructor(
+    private prisma: PrismaService,
+    private passwordService: PasswordService,
+  ) {}
 
   async assertUserExistById(id: string) {
     const user = await this.prisma.user.findFirst({
@@ -73,7 +64,7 @@ export class UserService {
       data: {
         id: newUUID(),
         login,
-        password: await this.cryptPassword(password),
+        password: await this.passwordService.cryptPassword(password),
         version: 1,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -83,14 +74,18 @@ export class UserService {
     return newUser;
   }
 
-  async testAuth(login: string, password: string) {
+  async testAuth(login: string, password: string): Promise<User> {
     const user = await this.getByLogin(login);
 
     if (!user) throw new NotFoundException('User not found');
 
-    if (!(await this.comparePassword(password, user.password))) {
+    if (
+      !(await this.passwordService.comparePassword(password, user.password))
+    ) {
       throw new ForbiddenException('Password is wrong');
     }
+
+    return user;
   }
 
   async changePasswordById(
@@ -100,14 +95,16 @@ export class UserService {
   ) {
     const user = await this.getById(id);
 
-    if (!(await this.comparePassword(oldPassword, user.password))) {
+    if (
+      !(await this.passwordService.comparePassword(oldPassword, user.password))
+    ) {
       throw new ForbiddenException('OldPassword is wrong');
     }
 
     await this.prisma.user.update({
       where: { id },
       data: {
-        password: await this.cryptPassword(newPassword),
+        password: await this.passwordService.cryptPassword(newPassword),
         version: user.version + 1,
         updatedAt: new Date(),
       },
