@@ -9,8 +9,13 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/createUser.dto';
-import { RefreshTokenResponse } from './auth.interface';
+import {
+  AuthLoginResponse,
+  AuthSingnupResponse,
+  RefreshTokenResponse,
+} from './auth.interface';
 import { validateRefreshToken } from 'src/helpers/validate';
+import { Public } from 'src/decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -21,14 +26,16 @@ export class AuthController {
   });
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('signup')
-  async signup(@Body() dto: CreateUserDto) {
-    await this.authService.signup(dto);
+  async signup(@Body() dto: CreateUserDto): Promise<AuthSingnupResponse> {
+    return await this.authService.signup(dto);
   }
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: CreateUserDto): Promise<string> {
+  async login(@Body() dto: CreateUserDto): Promise<AuthLoginResponse> {
     return await this.authService.login(dto);
   }
 
@@ -36,8 +43,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body(new validateRefreshToken())
-    // don't use RefreshTokenDto for manual validate!
-    dto,
+    dto: // 'Record<string, any>' used for manual validate with validateRefreshToken()
+    Record<string, any>,
   ): Promise<RefreshTokenResponse> {
     return await this.authService.refresh(dto);
   }
