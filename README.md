@@ -18,6 +18,93 @@ sh install-scout.sh
 - use
   `nmp run scan` or `docker scout cves mcnic/rs-nest-service-app`
 
+# Fix trouble with start
+
+May be docket don't start becouse conflict of names containers. For resolve shuld be make change name this container to unique.
+docker-compose.yaml:
+```
+version: '3.8'
+services:
+  db-nest:
+    build:
+      context: ./db
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${PG_USER}
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=${PG_NAME}
+    # volumes:
+    #   - pgdata-nest:/var/lib/postgresql/data
+    #   - pglog-nest:/var/lib/postgresql/data/log
+    command:
+      [
+        'postgres',
+        '-c',
+        'logging_collector=on',
+        '-c',
+        'log_directory=/var/lib/postgresql/data/log',
+        '-c',
+        'log_statement=all',
+      ]
+    networks:
+      - my_network
+    ports:
+      - ${PG_PORT}:${PG_PORT}
+
+  app:
+    image: mcnic/rs-nest-service-app
+    restart: unless-stopped
+    # env_file:
+    #   - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    ports:
+      - ${PORT}:${PORT}
+    depends_on:
+      - db-nest
+    networks:
+      - my_network
+    volumes:
+      # - ./logs:/usr/src/app/logs
+      - ./src:/app/src
+    command: ['npm', 'run', 'migrate:start:dev']
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: on-failure
+    container_name: pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_LISTEN_PORT=80
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - db-nest
+    networks:
+      - my_network
+
+volumes:
+  pgdata-nest:
+  pglog-nest:
+  pgadmin-data:
+  node_modules:
+  # logs:
+
+networks:
+  my_network:
+    driver: bridge
+```
+
+.env
+`
+DATABASE_URL="postgresql://postgres:postgres@db-nest:5432/nest-rest-api?schema=public?connect_timeout=300"
+`
+
+
 ## Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
