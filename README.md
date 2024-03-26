@@ -19,9 +19,17 @@ sh install-scout.sh
   `nmp run scan` or `docker scout cves mcnic/rs-nest-service-app`
 
 # Fix trouble with start
+If on start container appiere error like
+```
+initdb: error: directory "/var/lib/postgresql/data" exists but is not empty
+...
+initdb: hint: If you want to create a new database system, either remove or empty the directory "/var/lib/postgresql/data" or run initdb with an argument other than "/var/lib/postgresql/data".
+...
+Error: P1001: Can't reach database server at `db`:`5432`
+```
 
 May be docket don't start becouse conflict of names containers. For resolve shuld be make change name this container to unique.
-docker-compose.yaml:
+- change docker-compose.yaml:
 ```
 version: '3.8'
 services:
@@ -99,10 +107,20 @@ networks:
     driver: bridge
 ```
 
-.env
-`
+- change database name in .env:
+```
 DATABASE_URL="postgresql://postgres:postgres@db-nest:5432/nest-rest-api?schema=public?connect_timeout=300"
-`
+```
+
+- remove old contariners:
+```
+docker compose rm
+```
+
+- build new containers and start:
+```
+docker compose up --build
+```
 
 
 ## Prerequisites
