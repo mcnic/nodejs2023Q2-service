@@ -6,9 +6,15 @@ export class LogQueryMiddleware implements NestMiddleware {
   private readonly logger = new Logger(LogQueryMiddleware.name);
 
   use(req: Request, res: Response, next: NextFunction) {
-    const { url, params, body } = req;
+    const { url, params, body, headers } = req;
     const { statusCode } = res;
-    this.logger.debug({ url, params, body, statusCode });
+    this.logger.debug({
+      url,
+      params,
+      body,
+      statusCode,
+      authorization: headers['authorization'],
+    });
     next();
   }
 }
