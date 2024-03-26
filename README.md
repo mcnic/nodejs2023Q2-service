@@ -3,6 +3,8 @@
 # Docker Install and testing
 
 ```
+git checkout dev-container
+cp .env.example .env
 docker compose up --build
 ```
 
@@ -28,12 +30,12 @@ initdb: hint: If you want to create a new database system, either remove or empt
 Error: P1001: Can't reach database server at `db`:`5432`
 ```
 
-May be docket don't start becouse conflict of names containers. For resolve shuld be make change name this container to unique.
-- change docker-compose.yaml:
+p.s. May be docket don't start becouse conflict of names containers. For resolve shuld be make change name this container to unique.
+docker-compose.yaml:
 ```
 version: '3.8'
 services:
-  db-nest:
+  db:
     build:
       context: ./db
       dockerfile: ./Dockerfile
@@ -42,9 +44,10 @@ services:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASSWORD}
       - POSTGRES_DB=${PG_NAME}
-    # volumes:
-    #   - pgdata-nest:/var/lib/postgresql/data
-    #   - pglog-nest:/var/lib/postgresql/data/log
+      - PGDATA=/var/lib/postgresql/data/db-nest-api/
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pglog:/var/lib/postgresql/data/log
     command:
       [
         'postgres',
@@ -63,14 +66,14 @@ services:
   app:
     image: mcnic/rs-nest-service-app
     restart: unless-stopped
-    # env_file:
-    #   - .env
+    env_file:
+       - .env
     environment:
       - DATABASE_URL=${DATABASE_URL}
     ports:
       - ${PORT}:${PORT}
     depends_on:
-      - db-nest
+      - db
     networks:
       - my_network
     volumes:
@@ -91,13 +94,13 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     depends_on:
-      - db-nest
+      - db
     networks:
       - my_network
 
 volumes:
-  pgdata-nest:
-  pglog-nest:
+  pgdata:
+  pglog:
   pgadmin-data:
   node_modules:
   # logs:
@@ -107,10 +110,6 @@ networks:
     driver: bridge
 ```
 
-- change database name in .env:
-```
-DATABASE_URL="postgresql://postgres:postgres@db-nest:5432/nest-rest-api?schema=public?connect_timeout=300"
-```
 
 - remove old contariners:
 ```
