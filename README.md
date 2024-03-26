@@ -1,22 +1,38 @@
 # Home Library Service
 
-# Docker Install and testing
+# Docker Install and Testing
 
 ```
-docker compose up --build
+cp .env.example .env
+npm run docker:clear
+npm run docker:up
 ```
 
-# Docker scout for vulnerabilities scanning
+or `npm run docker:upd` for daemon mode, in this case You can use `npm run docker:logs` for view container logs
 
-- install
+## Testing
+
+`npm run docker:test:auth`
+`npm run docker:test:refresh`
+
+## Docker scout for vulnerabilities scanning
+
+- local install & run
 
 ```
 curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
 sh install-scout.sh
+
+'nmp run scan' or 'docker scout cves mcnic/rs-nest-service-app
 ```
 
-- use
-  `nmp run scan` or `docker scout cves mcnic/rs-nest-service-app`
+- run scanning in container `npm docker:scan`
+
+## Clering container and all unused docker's data
+
+`npm run docker:clear`
+
+- for clearing all unused containers & volumes run `npm run docker:prune`
 
 ## Prerequisites
 
@@ -42,8 +58,10 @@ npm start
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+in your browser
+
+- OpenAPI documentation by typing http://localhost:4000/api/.
+- Pgadmin `http://localhost:8080`
 
 ## Testing
 
@@ -140,3 +158,5 @@ to seed `npx prisma db seed`
 
 for clear all cache `docker system prune -a`
 show log watch `docker compose logs -f`, or once `docker logs <container>`
+
+todo: add `npm run env:generate` or `cp .env.example .env`

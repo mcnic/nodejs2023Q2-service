@@ -8,6 +8,8 @@ docker-compose.yaml
 **/.git
 **/.gitignore
 
+test/coverage
+
 .env
 pgdata
 logs

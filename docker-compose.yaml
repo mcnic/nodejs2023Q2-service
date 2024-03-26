@@ -8,10 +8,11 @@ services:
     environment:
       - POSTGRES_USER=${PG_USER}
       - POSTGRES_PASSWORD=${PG_PASSWORD}
-      - POSTGRES_DB=${PG_NAME}
+      - POSTGRES_DB=${PG_DB}
+      - PGDATA=/var/lib/postgresql/data/db-nest-api/
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - pglog:/var/lib/postgresql/data/log
+      - pg-data-my-nest:/var/lib/postgresql/data
+      - pg-log-my-nest:/var/lib/postgresql/data/log
     command:
       [
         'postgres',
@@ -30,10 +31,21 @@ services:
   app:
     image: mcnic/rs-nest-service-app
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${PG_USER}:${PG_PASSWORD}@db:${PG_PORT}/${PG_DB}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - LOCALE=${LOCALE}
+      - TIME_ZONE=${TIME_ZONE}
+      - LOG_TO_CONSOLE=${LOG_TO_CONSOLE}
+      - LOG_TO_FILE=${LOG_TO_FILE}
+      - LOG_FILE_PATH=${LOG_FILE_PATH}
+      - ERROR_FILE_PATH=${ERROR_FILE_PATH}
+      - LOG_FILE_MAX_SIZE=${LOG_FILE_MAX_SIZE}
+      - BCRYPT_SALT_ROUND=${BCRYPT_SALT_ROUND}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRE_TIME=${JWT_EXPIRE_TIME}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_REFRESH_EXPIRE_TIME=${JWT_REFRESH_EXPIRE_TIME}
     ports:
       - ${PORT}:${PORT}
     depends_on:
@@ -56,16 +68,16 @@ services:
     ports:
       - '8080:80'
     volumes:
-      - pgadmin-data:/var/lib/pgadmin
+      - pgadmin:/var/lib/pgadmin
     depends_on:
       - db
     networks:
       - my_network
 
 volumes:
-  pgdata:
-  pglog:
-  pgadmin-data:
+  pg-data-my-nest:
+  pg-log-my-nest:
+  pgadmin:
   node_modules:
 
 networks:
