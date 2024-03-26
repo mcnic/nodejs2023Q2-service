@@ -1,6 +1,5 @@
 export interface RefreshTokenResponse {
-  refreshToken: string;
-  token: string;
+  accessToken: string;
 }
 
 export interface AuthSingnupResponse {

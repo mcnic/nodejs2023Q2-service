@@ -12,8 +12,8 @@ import { LoggerModule } from '../logger/logger.module';
     PrismaModule,
     LoggerModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'Hy787tgGYUF^R%rbghjb jh^$$%EDF',
-      signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME ?? '60s' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRE_TIME },
     }),
   ],
   controllers: [AuthController],

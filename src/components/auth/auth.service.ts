@@ -1,7 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/createUser.dto';
 import { UserService } from '../users/user.service';
-import { getNewToken } from 'src/helpers/jwt';
 import {
   AuthLoginResponse,
   AuthSingnupResponse,
@@ -30,19 +29,28 @@ export class AuthService {
     const user = await this.userService.testAuth(login, password);
 
     const payload = { id: user.id, login: user.login };
-    const accessToken = await this.jwtService.signAsync(payload);
-    const refreshToken = '';
-    this.logger.warn(`access_token (${accessToken}) (${refreshToken})`);
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: process.env.JWT_REFRESH_EXPIRE_TIME,
+      }),
+    ]);
 
     return { accessToken, refreshToken };
   }
 
-  // TODO: wip
   async refresh({
     refreshToken,
   }: Record<string, any>): Promise<RefreshTokenResponse> {
-    // testToken(refreshToken) - error 403
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
 
-    return await getNewToken(refreshToken);
+      return { accessToken: await this.jwtService.signAsync(payload) };
+    } catch {
+      throw new ForbiddenException();
+    }
   }
 }
