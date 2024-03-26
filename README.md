@@ -125,7 +125,8 @@ run all containers: `docker compose up`
 ### Pgadmin:
 
 1. `http://localhost:8080` with login `PGADMIN_DEFAULT_EMAIL` and password `PGADMIN_DEFAULT_PASSWORD` from .env
-1. add server. Hostname may be found: run `docker inspect postgres-db`, then find "Config" : {"Hostname": "<you need this!>"}, e.g. a043d2f46a82. Login and password - from .env
+1. add server. Hostname may be found: run `docker inspect <postgres container's id> |grep Hostname`, e.g. a043d2f46a82.
+   Login and password - from .env
 
 ### Migration
 
