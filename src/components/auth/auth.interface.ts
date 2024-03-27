@@ -1,7 +1,3 @@
-export interface RefreshTokenResponse {
-  accessToken: string;
-}
-
 export interface AuthSingnupResponse {
   id: string;
 }

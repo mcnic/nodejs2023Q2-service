@@ -1,11 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../users/dto/createUser.dto';
 import { UserService } from '../users/user.service';
-import {
-  AuthLoginResponse,
-  AuthSingnupResponse,
-  RefreshTokenResponse,
-} from './auth.interface';
+import { AuthLoginResponse, AuthSingnupResponse } from './auth.interface';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from '../logger/logger.service';
 
@@ -25,14 +21,13 @@ export class AuthService {
     return { id: user.id };
   }
 
-  async login({ login, password }: CreateUserDto): Promise<AuthLoginResponse> {
-    const user = await this.userService.testAuth(login, password);
+  async getTokent(userId: string, login: string): Promise<AuthLoginResponse> {
+    const payload = { userId, login };
 
-    const payload = { id: user.id, login: user.login };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
         expiresIn: process.env.JWT_REFRESH_EXPIRE_TIME,
       }),
     ]);
@@ -40,15 +35,21 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async login({ login, password }: CreateUserDto): Promise<AuthLoginResponse> {
+    const user = await this.userService.testAuth(login, password);
+
+    return await this.getTokent(user.id, user.login);
+  }
+
   async refresh({
     refreshToken,
-  }: Record<string, any>): Promise<RefreshTokenResponse> {
+  }: Record<string, any>): Promise<AuthLoginResponse> {
     try {
-      const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+      const user = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
       });
 
-      return { accessToken: await this.jwtService.signAsync(payload) };
+      return await this.getTokent(user.userId, user.login);
     } catch {
       throw new ForbiddenException();
     }

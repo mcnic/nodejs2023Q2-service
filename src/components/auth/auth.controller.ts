@@ -9,11 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/createUser.dto';
-import {
-  AuthLoginResponse,
-  AuthSingnupResponse,
-  RefreshTokenResponse,
-} from './auth.interface';
+import { AuthLoginResponse, AuthSingnupResponse } from './auth.interface';
 import { validateRefreshToken } from 'src/helpers/validate';
 import { Public } from 'src/decorators/public.decorator';
 
@@ -39,13 +35,14 @@ export class AuthController {
     return await this.authService.login(dto);
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body(new validateRefreshToken())
     dto: // 'Record<string, any>' used for manual validate with validateRefreshToken()
     Record<string, any>,
-  ): Promise<RefreshTokenResponse> {
+  ): Promise<AuthLoginResponse> {
     return await this.authService.refresh(dto);
   }
 }
