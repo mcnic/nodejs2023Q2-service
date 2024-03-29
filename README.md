@@ -120,7 +120,7 @@ run postgres container:
 ```
 cd db
 docker build -t pgres .
-docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword pgres
+docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=postgres pgres
 ```
 
 shell in docker container `docker compose exec db sh`
