@@ -11,18 +11,9 @@ services:
       - POSTGRES_DB=${PG_DB}
       - PGDATA=/var/lib/postgresql/data/db-nest-api/
     volumes:
-      - pg-data-my-nest:/var/lib/postgresql/data
-      - pg-log-my-nest:/var/lib/postgresql/data/log
+      - pg-data:/var/lib/postgresql/data
     command:
-      [
-        'postgres',
-        '-c',
-        'logging_collector=on',
-        '-c',
-        'log_directory=/var/lib/postgresql/data/log',
-        '-c',
-        'log_statement=all',
-      ]
+      ['postgres', '-c', 'logging_collector=on', '-c', 'log_statement=all']
     networks:
       - my_network
     ports:
@@ -32,7 +23,7 @@ services:
     image: mcnic/rs-nest-service-app
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://${PG_USER}:${PG_PASSWORD}@db:${PG_PORT}/${PG_DB}
+      - DATABASE_URL=${DATABASE_URL}
       - LOG_LEVEL=${LOG_LEVEL}
       - LOCALE=${LOCALE}
       - TIME_ZONE=${TIME_ZONE}
@@ -75,10 +66,9 @@ services:
       - my_network
 
 volumes:
-  pg-data-my-nest:
-  pg-log-my-nest:
+  pg-data:
+  pg-log:
   pgadmin:
-  node_modules:
 
 networks:
   my_network:
