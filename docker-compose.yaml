@@ -18,6 +18,11 @@ services:
       - my_network
     ports:
       - ${PG_PORT}:${PG_PORT}
+    healthcheck:
+      test: ['CMD', 'pg_isready']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     image: mcnic/rs-nest-service-app
@@ -40,13 +45,13 @@ services:
     ports:
       - ${PORT}:${PORT}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - my_network
     volumes:
       - ./logs:/app/logs
       - ./src:/app/src
-    command: ['npm', 'run', 'migrate:start:dev']
 
   pgadmin:
     image: dpage/pgadmin4
@@ -61,7 +66,8 @@ services:
     volumes:
       - pgadmin:/var/lib/pgadmin
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - my_network
 

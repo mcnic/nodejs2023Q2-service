@@ -3,4 +3,4 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm i && npm cache clean --force
 COPY . .
-# CMD ["npm", "run", "migrate:start:dev"]
+CMD ["npm", "run", "migrate:start:dev"]
