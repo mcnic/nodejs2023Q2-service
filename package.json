@@ -20,18 +20,19 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "migrate:start:dev": "prisma migrate deploy && nest start --watch",
+    "migrate:start:dev": "npx prisma generate && npx prisma migrate deploy && npm run start:dev",
     "docker:clear": "docker compose down && docker compose rm -f",
     "docker:up": "docker compose up --build",
+    "docker:migrate:up": "docker compose exec app npx prisma migrate && docker compose up --build",
     "docker:upd": "docker compose up -d --build",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs",
-    "docker:push": "docker compose build && docker compose push",
+    "docker:logs": "docker compose logs -f",
+    "docker:push": "docker push mcnic/rs-nest-service-app",
     "docker:prune": "docker compose rm -f && docker system prune -f && docker volume prune -f",
     "docker:test:auth": "docker compose exec app npm run test:auth",
     "docker:test:refresh": "docker compose exec app npm run test:refresh",
     "docker:scan": "docker scout cves mcnic/rs-nest-service-app",
-    "db:migrate": "npx prisma generate"
+    "db:migrate": "docker compose exec app npx prisma migrate dev"
   },
   "dependencies": {
     "@nestjs/cli": "^10.3.2",

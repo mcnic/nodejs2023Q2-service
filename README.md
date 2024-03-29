@@ -150,7 +150,7 @@ run all containers: `docker compose up`
 
 `npx prisma migrate dev`
 
-to add new megration `npx prisma migrate dev --name "init"`
+to add new migration `npx prisma migrate dev --name "init"`
 
 to seed `npx prisma db seed`
 
@@ -158,5 +158,3 @@ to seed `npx prisma db seed`
 
 for clear all cache `docker system prune -a`
 show log watch `docker compose logs -f`, or once `docker logs <container>`
-
-todo: add `npm run env:generate` or `cp .env.example .env`
