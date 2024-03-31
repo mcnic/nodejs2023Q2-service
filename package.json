@@ -28,7 +28,7 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
     "docker:push": "docker push mcnic/rs-nest-service-app",
-    "docker:prune": "docker compose rm -f && docker system prune -f && docker volume prune -f",
+    "docker:prune": "docker compose rm -f && docker system prune -f && docker volume prune -f && docker image prune -f",
     "docker:test:auth": "docker compose exec app npm run test:auth",
     "docker:test:refresh": "docker compose exec app npm run test:refresh",
     "docker:scan": "docker scout cves mcnic/rs-nest-service-app",
