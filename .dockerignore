@@ -1,0 +1,17 @@
+dist
+node_modules
+
+.dockerignore
+Dockerfile
+docker-compose.yaml
+
+**/.git
+**/.gitignore
+
+.env
+pgdata
+logs
+db
+score*
+
+src

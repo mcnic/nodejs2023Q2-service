@@ -4,16 +4,11 @@ import { FavoriteService } from './favorite.service';
 import { TrackService } from '../tracks/track.service';
 import { AlbumService } from '../albums/album.service';
 import { ArtistService } from '../artists/artist.service';
-import { MemoryDbProvider } from 'src/db/memoryStore';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   controllers: [FavoriteController],
-  providers: [
-    FavoriteService,
-    TrackService,
-    AlbumService,
-    ArtistService,
-    MemoryDbProvider,
-  ],
+  providers: [FavoriteService, TrackService, AlbumService, ArtistService],
+  imports: [PrismaModule],
 })
 export class FavoriteModule {}

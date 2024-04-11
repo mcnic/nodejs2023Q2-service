@@ -1,99 +1,71 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ShowingUser, User } from '../user.interface';
-import { isValidUUID, newUUID } from 'src/helpers/uuid';
-import { getTimestamp } from 'src/helpers/time';
-import { MEMORY_STORE } from 'src/db/memoryStore';
-import { MemoryStore } from 'src/db/memoryStore';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { User } from '../user.interface';
+import { newUUID } from 'src/helpers/uuid';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(MEMORY_STORE) private readonly store: MemoryStore) {}
-
-  assertId(id: string) {
-    if (!isValidUUID(id))
-      throw new HttpException(
-        'userId is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
-  }
+  constructor(private prisma: PrismaService) {}
 
   async assertUserExistById(id: string) {
-    const user = await this.isExist(id);
+    const user = await this.prisma.user.findFirst({
+      where: { id },
+    });
 
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-  }
-
-  getShowngUser(user: User): ShowingUser {
-    const { id, login, version, createdAt, updatedAt } = user;
-
-    return { id, login, version, createdAt, updatedAt };
+    if (!user) throw new NotFoundException('User not found');
   }
 
   async getAll(): Promise<User[]> {
-    const store = await this.store.getStore();
-
-    return store.users;
+    return await this.prisma.user.findMany();
   }
 
   async isExist(userId: string): Promise<boolean> {
-    const store = await this.store.getStore();
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
 
-    return !!store.users.find(({ id }) => id === userId);
-  }
-
-  async isPasswordCorrect(
-    userId: string,
-    userPassword: string,
-  ): Promise<boolean> {
-    const user = await this.getById(userId);
-
-    return user.password === userPassword;
+    return !!user;
   }
 
   async getById(userId: string): Promise<User | undefined> {
-    this.assertId(userId);
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
 
-    const store = await this.store.getStore();
-    const user = store.users.find(({ id }) => id === userId);
-
-    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    if (!user) throw new NotFoundException('User not found');
 
     return user;
   }
 
   async getByLogin(userLogin: string): Promise<User> {
-    const store = await this.store.getStore();
-
-    return store.users.find(({ login }) => login === userLogin);
+    return await this.prisma.user.findFirst({
+      where: { login: userLogin },
+    });
   }
 
   async add(login: string, password: string): Promise<User> {
-    if (
-      !login ||
-      !password ||
-      typeof login !== 'string' ||
-      typeof password !== 'string'
-    )
-      throw new HttpException('Invalid user data', HttpStatus.BAD_REQUEST);
-
-    const user = await this.getByLogin(login);
+    const user = await this.prisma.user.findFirst({
+      where: { login },
+    });
 
     if (user) return user;
 
-    const timestamp = getTimestamp();
-    const newUser: User = {
-      id: newUUID(),
-      login,
-      password,
-      version: 1,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+    const timestamp = new Date();
 
-    const store = await this.store.getStore();
-    const users = store.users;
-    users.push(newUser);
-    await this.store.setStore({ ...store, users });
+    const newUser = await this.prisma.user.create({
+      data: {
+        id: newUUID(),
+        login,
+        password,
+        version: 1,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      },
+    });
 
     return newUser;
   }
@@ -103,39 +75,27 @@ export class UserService {
     oldPassword: string,
     newPassword: string,
   ) {
-    if (
-      !oldPassword ||
-      !newPassword ||
-      typeof oldPassword !== 'string' ||
-      typeof newPassword !== 'string'
-    )
-      throw new HttpException('Invalid password data', HttpStatus.BAD_REQUEST);
+    const user = await this.getById(id);
 
-    this.assertId(id);
+    if (user.password !== oldPassword) {
+      throw new ForbiddenException('OldPassword is wrong');
+    }
 
-    if (!(await this.isPasswordCorrect(id, oldPassword)))
-      throw new HttpException('OldPassword is wrong', HttpStatus.FORBIDDEN);
-
-    const store = await this.store.getStore();
-    const users = store.users.map((user) => {
-      return user.id === id
-        ? {
-            ...user,
-            password: newPassword,
-            updatedAt: getTimestamp(),
-            version: user.version + 1,
-          }
-        : user;
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: newPassword,
+        version: user.version + 1,
+        updatedAt: new Date(),
+      },
     });
-    await this.store.setStore({ ...store, users });
   }
 
-  async removedById(userId: string) {
-    this.assertId(userId);
-    await this.assertUserExistById(userId);
+  async removedById(id: string) {
+    await this.assertUserExistById(id);
 
-    const store = await this.store.getStore();
-    const users = store.users.filter(({ id }) => id !== userId);
-    await this.store.setStore({ ...store, users });
+    await this.prisma.user.delete({
+      where: { id },
+    });
   }
 }

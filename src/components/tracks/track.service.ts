@@ -1,46 +1,41 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Track } from './track.interface';
-import { isValidUUID, newUUID } from 'src/helpers/uuid';
-import { MEMORY_STORE } from 'src/db/memoryStore';
-import { MemoryStore } from 'src/db/memoryStore';
+import { newUUID } from 'src/helpers/uuid';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  constructor(@Inject(MEMORY_STORE) private readonly store: MemoryStore) {}
+  constructor(private prisma: PrismaService) {}
 
-  assertId(id: string) {
-    if (!isValidUUID(id))
-      throw new HttpException(
-        'id is invalid (not uuid)',
-        HttpStatus.BAD_REQUEST,
-      );
-  }
-
-  async assertExistById(
-    trackId: string,
-    status: HttpStatus = HttpStatus.NOT_FOUND,
-  ) {
-    const store = await this.store.getStore();
-    const track = store.tracks.find(({ id }) => id === trackId);
+  async assertExistById(id: string, status: HttpStatus = HttpStatus.NOT_FOUND) {
+    const track = await this.prisma.track.findFirst({
+      where: { id },
+    });
 
     if (!track) throw new HttpException('Track not found', status);
   }
 
   async getAll(): Promise<Track[]> {
-    const store = await this.store.getStore();
-
-    return store.tracks;
+    return await this.prisma.track.findMany();
   }
 
-  async getById(trackId: string): Promise<Track | undefined> {
-    this.assertId(trackId);
+  async getAllFavorited(): Promise<Track[]> {
+    return await this.prisma.track.findMany({
+      where: { favorite: true },
+    });
+  }
 
-    const store = await this.store.getStore();
+  async getById(id: string): Promise<Track | undefined> {
+    const track = await this.prisma.track.findFirst({
+      where: { id },
+    });
 
-    const track = store.tracks.find(({ id }) => id === trackId);
-
-    if (!track)
-      throw new HttpException('Track not found', HttpStatus.NOT_FOUND);
+    if (!track) throw new NotFoundException('Track not found');
 
     return track;
   }
@@ -48,85 +43,64 @@ export class TrackService {
   async add(dto: Track): Promise<Track> {
     const { name, duration, artistId, albumId } = dto;
 
-    if (
-      !name ||
-      !duration ||
-      typeof name !== 'string' ||
-      typeof duration !== 'number'
-    )
-      throw new HttpException('Invalid Track data', HttpStatus.BAD_REQUEST);
-
-    const store = await this.store.getStore();
-    const tracks = store.tracks;
-    const newTrack: Track = {
-      id: newUUID(),
-      name,
-      artistId,
-      albumId,
-      duration,
-    };
-    tracks.push(newTrack);
-    await this.store.setStore({ ...store, tracks });
+    const newTrack = await this.prisma.track.create({
+      data: {
+        id: newUUID(),
+        name,
+        artistId,
+        albumId,
+        duration,
+      },
+    });
 
     return newTrack;
   }
 
   async changeById(id: string, dto: Track): Promise<Track> {
-    const { name, duration } = dto;
-
-    this.assertId(id);
     await this.assertExistById(id);
 
-    if (
-      !name ||
-      !duration ||
-      typeof name !== 'string' ||
-      typeof duration !== 'number'
-    )
-      throw new HttpException('Invalid Track data', HttpStatus.BAD_REQUEST);
-
-    let changedTrack: Track;
-
-    const store = await this.store.getStore();
-    const tracks = store.tracks.map((track) => {
-      if (track.id === id) {
-        changedTrack = {
-          ...track,
-          ...dto,
-        };
-        return changedTrack;
-      }
-      return track;
+    return await this.prisma.track.update({
+      where: { id },
+      data: {
+        ...dto,
+      },
     });
-    await this.store.setStore({ ...store, tracks });
-
-    return changedTrack;
   }
 
-  async removeById(trackId: string) {
-    this.assertId(trackId);
-    await this.assertExistById(trackId);
+  async removeById(id: string) {
+    await this.assertExistById(id);
 
-    const store = await this.store.getStore();
-    const tracks = store.tracks.filter(({ id }) => id !== trackId);
-    await this.store.setStore({ ...store, tracks });
+    await this.prisma.track.delete({
+      where: { id },
+    });
   }
 
   async removeAlbumFromAllTracks(id: string) {
-    const store = await this.store.getStore();
-    const tracks = store.tracks.map((track) => {
-      if (track.albumId === id) track.albumId = null;
-      return track;
+    await this.prisma.track.updateMany({
+      where: { albumId: id },
+      data: {
+        albumId: null,
+      },
     });
-    await this.store.setStore({ ...store, tracks });
   }
 
   async removeArtistFromAllTracks(id: string) {
-    const store = await this.store.getStore();
-    const tracks = store.tracks.map((track) => {
-      if (track.artistId === id) track.artistId = null;
-      return track;
+    await this.prisma.track.updateMany({
+      where: { artistId: id },
+      data: {
+        artistId: null,
+      },
     });
-    await this.store.setStore({ ...store, tracks });
+  }
+
+  async changeFavoriteById(id: string, favorite: boolean) {
+    await this.assertExistById(id);
+
+    await this.prisma.track.update({
+      where: { id },
+      data: {
+        favorite,
+      },
+    });
   }
 }
