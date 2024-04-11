@@ -84,17 +84,6 @@ export class AlbumService {
     await this.prisma.album.delete({
       where: { id },
     });
-
-    await this.trackService.removeAlbumFromAllTracks(id);
-  }
-
-  async removeArtistFromAllAlbums(id: string) {
-    await this.prisma.album.updateMany({
-      where: { artistId: id },
-      data: {
-        artistId: null,
-      },
-    });
   }
 
   async changeFavoriteById(id: string, favorite: boolean) {

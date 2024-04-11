@@ -4,18 +4,21 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
   UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdatePasswordDto, User } from '../user.interface';
+import { User } from './user.interface';
+import { UpdatePasswordDto } from './dto/updateUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import { validateID } from 'src/helpers/validate';
 import {
   TranformUser,
   TranformUsers,
-} from 'src/helpers/tranformUser.interceptor';
+} from 'src/interceptors/tranformUser.interceptor';
 
 @Controller('user')
 export class UserController {
@@ -34,7 +37,7 @@ export class UserController {
   }
 
   @Post()
-  @HttpCode(201)
+  @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(new TranformUser())
   async addUser(@Body() dto: CreateUserDto): Promise<User> {
     const { login, password } = dto;
@@ -56,7 +59,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async removeById(@Param('id', validateID) id: string) {
     await this.userService.removedById(id);
   }

@@ -16,7 +16,7 @@ import { validateID } from 'src/helpers/validate';
 import {
   RemoveFavorite,
   RemoveFavoriteFromArray,
-} from 'src/helpers/removeFavorite.interceptor';
+} from 'src/interceptors/removeFavorite.interceptor';
 
 @Controller('track')
 export class TrackController {

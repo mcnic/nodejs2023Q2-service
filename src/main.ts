@@ -3,12 +3,24 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from './components/logger/logger.service';
+import { HttpExceptionFilter } from './filters/HttpExceptionFilter.filter';
 
 async function bootstrap() {
   config();
-  const PORT = process.env.PORT ?? 4000;
-  const app = await NestFactory.create(AppModule);
-  console.info(`Server start on http://localhost:${PORT}`);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
+
+  process.on('uncaughtException', (err) => {
+    logger.error(`Uncaught Exception - ${err.message}`);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    logger.warn(`Uncaught Rejection (may be in promise) - ${reason}`);
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('The home library')
@@ -25,6 +37,9 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+
+  const PORT = process.env.PORT ?? 4000;
+  logger.warn(`Server start on http://localhost:${PORT}`);
 
   await app.listen(PORT);
 }

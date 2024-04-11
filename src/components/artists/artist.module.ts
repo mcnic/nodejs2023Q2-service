@@ -9,5 +9,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   controllers: [ArtistController],
   providers: [ArtistService, AlbumService, TrackService],
   imports: [PrismaModule],
+  exports: [ArtistService],
 })
 export class ArtistModule {}

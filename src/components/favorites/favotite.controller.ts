@@ -11,7 +11,7 @@ import {
 import { FavoriteService } from './favorite.service';
 import { FavoritesResponse } from './favorite.interface';
 import { validateID } from 'src/helpers/validate';
-import { RemoveFavoriteFromFavorites } from 'src/helpers/removeFavorite.interceptor';
+import { RemoveFavoriteFromFavorites } from 'src/interceptors/removeFavorite.interceptor';
 
 @Controller('favs')
 export class FavoriteController {

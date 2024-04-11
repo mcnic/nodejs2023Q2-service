@@ -75,24 +75,6 @@ export class TrackService {
     });
   }
 
-  async removeAlbumFromAllTracks(id: string) {
-    await this.prisma.track.updateMany({
-      where: { albumId: id },
-      data: {
-        albumId: null,
-      },
-    });
-  }
-
-  async removeArtistFromAllTracks(id: string) {
-    await this.prisma.track.updateMany({
-      where: { artistId: id },
-      data: {
-        artistId: null,
-      },
-    });
-  }
-
   async changeFavoriteById(id: string, favorite: boolean) {
     await this.assertExistById(id);
 

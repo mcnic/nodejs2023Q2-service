@@ -1,24 +1,38 @@
 # Home Library Service
 
-# Docker Install and testing
+# Docker Install and Testing
 
 ```
-git checkout dev-container
 cp .env.example .env
-docker compose up --build
+npm run docker:clear
+npm run docker:up
 ```
 
-# Docker scout for vulnerabilities scanning
+or `npm run docker:upd` for daemon mode, in this case You can use `npm run docker:logs` for view container logs
 
-- install
+## Testing
+
+`npm run docker:test:auth`
+`npm run docker:test:refresh`
+
+## Docker scout for vulnerabilities scanning
+
+- local install & run
 
 ```
 curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
 sh install-scout.sh
+
+'nmp run scan' or 'docker scout cves mcnic/rs-nest-service-app
 ```
 
-- use
-  `nmp run scan` or `docker scout cves mcnic/rs-nest-service-app`
+- run scanning in container `npm docker:scan`
+
+## Clering container and all unused docker's data
+
+`npm run docker:clear`
+
+- for clearing all unused containers & volumes run `npm run docker:prune`
 
 # Fix trouble with start
 If on start container appiere error like
@@ -146,8 +160,10 @@ npm start
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+in your browser
+
+- OpenAPI documentation by typing http://localhost:4000/api/.
+- Pgadmin `http://localhost:8080`
 
 ## Testing
 
@@ -206,7 +222,7 @@ run postgres container:
 ```
 cd db
 docker build -t pgres .
-docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=mysecretpassword pgres
+docker run -it --rm -p 5432:5432 -e POSTGRES_PASSWORD=postgres pgres
 ```
 
 shell in docker container `docker compose exec db sh`
@@ -229,16 +245,18 @@ run all containers: `docker compose up`
 ### Pgadmin:
 
 1. `http://localhost:8080` with login `PGADMIN_DEFAULT_EMAIL` and password `PGADMIN_DEFAULT_PASSWORD` from .env
-1. add server. Hostname may be found: run `docker inspect postgres-db`, then find "Config" : {"Hostname": "<you need this!>"}, e.g. a043d2f46a82. Login and password - from .env
+1. add server. Hostname may be found: run `docker inspect <postgres container's id> |grep Hostname`, e.g. a043d2f46a82.
+   Login and password - from .env
 
 ### Migration
 
 `npx prisma migrate dev`
 
-to add new megration `npx prisma migrate dev --name "init"`
+to add new migration `npx prisma migrate dev --name "init"`
 
 to seed `npx prisma db seed`
 
 ### Share
 
 for clear all cache `docker system prune -a`
+show log watch `docker compose logs -f`, or once `docker logs <container>`
